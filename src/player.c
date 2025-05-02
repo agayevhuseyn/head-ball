@@ -1,0 +1,53 @@
+#include "player.h"
+#include "config.h"
+
+void init_player(Player* player, int side, Vector2 pos, Vector2 dir, float radius, float speed, float jmp_force)
+{
+  *player = (Player) {0};
+  player->pos = pos;
+  player->dir = dir;
+  player->radius = radius;
+  player->speed = speed;
+  player->jmp_force = jmp_force;
+  player->can_jump = false;
+  player->side = side;
+}
+
+void draw_player(Player* player)
+{
+  Color color;
+  if (player->side == PLAYER_LEFT_SIDE)
+    color = RED;
+  else
+    color = BLUE;
+
+  DrawCircleV(player->pos, player->radius, color);
+}
+
+void update_player(Player* player, float dt)
+{
+  if (player->side == PLAYER_LEFT_SIDE) {
+    player->dir.x = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
+    if (player->can_jump && IsKeyPressed(KEY_W)) {
+      player->can_jump = false;
+      player->velo = player->jmp_force;
+    }
+  } else if (player->side == PLAYER_RIGHT_SIDE) {
+    player->dir.x = IsKeyDown(KEY_RIGHT) - IsKeyDown(KEY_LEFT);
+    if (player->can_jump && IsKeyPressed(KEY_UP)) {
+      player->can_jump = false;
+      player->velo = player->jmp_force;
+    }
+  }
+
+  player->pos.x += player->dir.x * player->speed * dt;
+
+  player->velo  += GRAVITY * dt;
+  player->pos.y += player->velo * dt;
+
+  if (player->pos.y + player->radius >= HEIGHT) {
+    player->pos.y = HEIGHT - player->radius;
+    player->velo = 0;
+    player->can_jump = true;
+  }
+}
