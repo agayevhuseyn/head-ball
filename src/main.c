@@ -4,25 +4,25 @@
 
 int main(void)
 {
-  InitWindow(WIDTH, HEIGHT, TITLE);
-  SetTargetFPS(FPS);
+    InitWindow(WIDTH, HEIGHT, TITLE);
+    SetTargetFPS(FPS);
 
-  Game game;
-  init_game(&game);
+    Game game;
+    init_game(&game);
 
-  while (!WindowShouldClose()) {
-    const float dt = GetFrameTime();
+    while (!WindowShouldClose()) {
+        const float dt = GetFrameTime();
 
-    update_game(&game, dt);
+        update_game(&game, dt);
 
-    BeginDrawing();
-    ClearBackground(BLACK);
-    draw_game(&game);
-    EndDrawing();
-  }
+        BeginDrawing();
+        ClearBackground(BLACK);
+        draw_game(&game);
+        EndDrawing();
+    }
 
-  // close game
-  CloseWindow();
+    // close game
+    CloseWindow();
 
-  return 0;
+    return 0;
 }

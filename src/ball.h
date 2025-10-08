@@ -7,9 +7,9 @@
 typedef struct Ball Ball;
 
 struct Ball {
-  Vector2 pos;
-  float radius;
-  Vector2 velo;
+    Vector2 pos;
+    float radius;
+    Vector2 velo;
 };
 
 void init_ball(Ball* ball, Vector2 pos, float radius);

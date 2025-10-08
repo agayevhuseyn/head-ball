@@ -5,8 +5,8 @@
 typedef struct Game Game;
 
 struct Game {
-  Player players[2];
-  Ball ball;
+    Player players[2];
+    Ball ball;
 };
 
 void init_game(Game* game);
