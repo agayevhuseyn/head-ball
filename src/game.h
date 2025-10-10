@@ -9,6 +9,6 @@ struct Game {
     Ball ball;
 };
 
-void init_game(Game* game);
-void draw_game(Game* game);
-void update_game(Game* game, float dt);
+void init_game(Game *game);
+void draw_game(Game *game);
+void update_game(Game *game, float dt);

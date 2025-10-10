@@ -6,7 +6,7 @@
 
 #define FRICTION 0.99f
 
-void init_ball(Ball* ball, Vector2 pos, float radius)
+void init_ball(Ball *ball, Vector2 pos, float radius)
 {
     *ball = (Ball) {0};
     ball->pos = pos;
@@ -14,7 +14,7 @@ void init_ball(Ball* ball, Vector2 pos, float radius)
     ball->velo = vec2(0, 0);
 }
 
-void draw_ball(Ball* ball)
+void draw_ball(Ball *ball)
 {
     DrawCircleV(ball->pos, ball->radius, RAYWHITE);
 }
@@ -32,7 +32,7 @@ Vector2 check_circle_collision(Vector2 a, Vector2 b, float ar, float br)
     return normalize(vec2(b.x - a.x, b.y - a.y));
 }
 
-void update_ball(Ball* ball, float dt, const Player players[2])
+void update_ball(Ball *ball, float dt, const Player players[2])
 {
     // Gravity + motion
     ball->velo.y += GRAVITY * dt;

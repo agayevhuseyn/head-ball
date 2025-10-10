@@ -19,8 +19,9 @@ struct Player {
     int side;
 };
 
-void init_player(Player* player, int side, Vector2 pos, Vector2 dir, float radius, float speed, float jmp_force);
-void draw_player(Player* player);
-void update_player(Player* player, float dt);
+void init_player(Player *player, int side, Vector2 pos, Vector2 dir,
+                 float radius, float speed, float jmp_force);
+void draw_player(Player *player);
+void update_player(Player *player, float dt);
 
 #endif
