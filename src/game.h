@@ -7,6 +7,8 @@ typedef struct Game Game;
 struct Game {
     Player players[2];
     Ball ball;
+    PObject borders[4];
+    PObject bars[2];
 };
 
 void init_game(Game *game);
