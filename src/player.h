@@ -13,6 +13,8 @@ typedef struct Player Player;
 #define PLAYER_BLONDE   1
 #define PLAYER_BLACK    2
 #define PLAYER_BALD  3
+#define PLAYER_LAST PLAYER_BALD
+#define PLAYER_SIZE (PLAYER_LAST + 1)
 
 struct Player {
     PObject p;
@@ -23,8 +25,9 @@ struct Player {
     int index;
 };
 
+Texture2D get_player_tex();
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);
-void draw_player(Player *player);
+void draw_player(Player *player, Texture2D sheet);
 void update_player(Player *player, float dt);
 
 #endif

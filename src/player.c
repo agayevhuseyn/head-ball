@@ -3,8 +3,6 @@
 #include "macros.h"
 
 
-static Texture2D player_tex = {0};
-
 void init_player(Player *player, int index, int side, Vector2 pos,
                  float radius, float speed, float jmp_force)
 {
@@ -23,12 +21,9 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     player->jmp_force = jmp_force;
     player->side = side;
     player->index = index;
-
-    if (player_tex.id == 0)
-        player_tex = LoadTexture("assets/player.png");
 }
 
-void draw_player(Player *player)
+void draw_player(Player *player, Texture2D sheet)
 {
     Color color;
     int mul;
@@ -41,7 +36,7 @@ void draw_player(Player *player)
     }
 
     //DrawCircleV(ascir(player->p).pos, ascir(player->p).radius, color);
-    Rectangle src  = { player_tex.height * player->index, 0, mul * player_tex.height, player_tex.height };
+    Rectangle src  = { sheet.height * player->index, 0, mul * sheet.height, sheet.height };
     float radius = ascir(player->p).radius;
     Rectangle dest = {
         ascir(player->p).pos.x - radius,
@@ -49,7 +44,7 @@ void draw_player(Player *player)
         radius * 2,
         radius * 2
     };
-    DrawTexturePro(player_tex, src, dest, vec2(0, 0), 0, WHITE);
+    DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
 }
 
 #define gamepad_exist() (IsGamepadAvailable(0))
