@@ -30,6 +30,7 @@ struct PObject {
     int on_ground;
     float fric;
     float mass;
+    float eloss;
     Vector2 velo;
 };
 

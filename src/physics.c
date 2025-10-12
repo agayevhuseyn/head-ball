@@ -111,9 +111,9 @@ static void resolve_cir_rec(PObject *cobj, PObject *robj, Vector2 normal, float 
     //bool on_ground = normal.y < -0.5f;   // assuming up is negative Y
 
     // Reflect velocity
-    float vel_along_normal = cobj->velo.x*normal.x + cobj->velo.y*normal.y;
+    float vel_along_normal = cobj->velo.x * normal.x + cobj->velo.y * normal.y;
     if (vel_along_normal < 0) {
-        float e = 0.8f;
+        float e = 1.0f - clamp(cobj->eloss, 0.0f, 1.0f);
         if (cobj->bounce) {
             cobj->velo.x -= (1 + e) * vel_along_normal * normal.x;
             cobj->velo.y -= (1 + e) * vel_along_normal * normal.y;

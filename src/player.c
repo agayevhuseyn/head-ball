@@ -11,6 +11,7 @@ void init_player(Player *player, int side, Vector2 pos,
     player->p.bounce = false;
     player->p.fric = 0;
     player->p.mass = 200;
+    player->p.eloss = 0;
     ascir(player->p).pos = pos;
     ascir(player->p).radius = radius;
 
