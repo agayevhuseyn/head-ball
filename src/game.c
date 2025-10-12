@@ -13,23 +13,45 @@
 
 #define BOR_THICK 32
 
+/* BALL */
+#define BALL_START_POS vec2(WIDTH / 2.0f, 128)
+
+/* PLAYER */
+#define PLAYER_LEFT_START_POS  vec2(256, 400)
+#define PLAYER_RIGHT_START_POS vec2(1024, 400)
+
 static Texture2D bg_tex;
 
-static void draw_recs(PObject *ps)
+static void draw_recs(PObject *ps, int size)
 {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < size; i++) {
         DrawRectangleRec(asrec(ps[i]), RED);
     }
+}
+
+static void reset_game(Game *game)
+{
+    Player *a  = &game->players[0];
+    Player *b  = &game->players[1];
+    Ball *ball = &game->ball;
+
+    ascir(ball->p).pos = BALL_START_POS;
+    ball->p.velo = vec2zero;
+
+    ascir(a->p).pos = PLAYER_LEFT_START_POS;
+    a->p.velo = vec2zero;
+    ascir(b->p).pos = PLAYER_RIGHT_START_POS;
+    b->p.velo = vec2zero;
 }
 
 void init_game(Game *game)
 {
     bg_tex = LoadTexture("assets/bg.png");
     /* ball */
-    init_ball(&game->ball, vec2(WIDTH / 2.0, 128), 32);
+    init_ball(&game->ball, BALL_START_POS, 32);
     /* players */
-    init_player(&game->players[0], PLAYER_LEFT_SIDE,  vec2(100, 300),  64, SPEED, JMP_FORCE);
-    init_player(&game->players[1], PLAYER_RIGHT_SIDE, vec2(1180, 300), 64, SPEED, JMP_FORCE);
+    init_player(&game->players[0], PLAYER_BALD, PLAYER_LEFT_SIDE,  PLAYER_LEFT_START_POS,  64, SPEED, JMP_FORCE);
+    init_player(&game->players[1], PLAYER_BLACK, PLAYER_RIGHT_SIDE, PLAYER_RIGHT_START_POS, 64, SPEED, JMP_FORCE);
     /* bars */
     game->bars[0] = pobject_staticrec(rec(0, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
     game->bars[1] = pobject_staticrec(rec(WIDTH - BAR_WIDTH, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
@@ -40,58 +62,20 @@ void init_game(Game *game)
     game->borders[3] = pobject_staticrec(rec(WIDTH, 0, BOR_THICK, GROUND));
 }
 
+static int show_fps = false;
+
 void draw_game(Game *game)
 {
     DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
-    //draw_bars(game);
+    //draw_recs(game, 2);
     draw_player(&game->players[0]);
     draw_player(&game->players[1]);
     draw_ball(&game->ball);
-    //draw_recs(game->borders);
-}
-
-void resolve_player_collision(Player *a, Player *b)
-{
-    /*
-    Vector2 diff = Vector2Subtract(b->pos, a->pos);
-    float dist = Vector2Length(diff);
-    float minDist = a->radius + b->radius;
-
-    if (dist < minDist && dist > 0.0f) {
-        Vector2 normal = Vector2Scale(diff, 1.0f / dist);
-
-        // Only separate horizontally
-        a->pos.x -= normal.x * (minDist - dist) * 0.5f;
-        b->pos.x += normal.x * (minDist - dist) * 0.5f;
-
-        // Optional: apply tiny horizontal velocity to simulate push
-        float push = 50.0f;
-        a->velo.x -= normal.x * push * 0.5f;
-        b->velo.x += normal.x * push * 0.5f;
-    }
-    */
-    Vector2 diff = Vector2Subtract(ascir(b->p).pos, ascir(a->p).pos);
-    float dist = Vector2Length(diff);
-    float minDist = ascir(a->p).radius + ascir(b->p).radius;
-
-    if (dist < minDist && dist > 0.0f) {
-        // Normalized collision vector
-        Vector2 normal = Vector2Scale(diff, 1.0f / dist);
-
-        // Push each player away equally
-        float overlap = minDist - dist;
-        ascir(a->p).pos = Vector2Subtract(ascir(a->p).pos, Vector2Scale(normal, overlap * 0.5f));
-        ascir(b->p).pos = Vector2Add(ascir(b->p).pos, Vector2Scale(normal, overlap * 0.5f));
-
-        // Optional: simple velocity reflection for a bounce
-        float relativeVelocity = (b->p.velo.x - a->p.velo.x) * normal.x + (b->p.velo.y - a->p.velo.y) * normal.y;
-        if (relativeVelocity < 0) {
-            float restitution = 0.3f; // small bounce
-            Vector2 impulse = Vector2Scale(normal, -(1 + restitution) * relativeVelocity);
-            a->p.velo = Vector2Subtract(a->p.velo, impulse);
-            b->p.velo = Vector2Add(b->p.velo, impulse);
-        }
-    }
+    //draw_recs(game->borders, 4);
+    if (IsKeyPressed(KEY_F1))
+        show_fps = !show_fps;
+    if (show_fps)
+        DrawText(TextFormat("%i", GetFPS()), 8, 8, 32, BLACK);
 }
 
 void update_game(Game *game, float dt)
@@ -99,6 +83,11 @@ void update_game(Game *game, float dt)
     Player *a  = &game->players[0];
     Player *b  = &game->players[1];
     Ball *ball = &game->ball;
+
+    if (IsKeyPressed(KEY_R)) {
+        reset_game(game);
+    }
+
     update_player(a, dt);
     update_player(b, dt);
 

@@ -21,14 +21,14 @@ void init_ball(Ball *ball, Vector2 pos, float radius)
     ball->p.eloss = 0.25f; /* [0, 1] */
     ascir(ball->p).pos = pos;
     ascir(ball->p).radius = radius;
-    ball->p.velo = vec2(0, 0);
+    ball->p.velo = vec2zero;
 
     ball_tex = LoadTexture("assets/ball.png");
 }
 
 void draw_ball(Ball *ball)
 {
-    DrawCircleV(ascir(ball->p).pos, ascir(ball->p).radius * 1.1f, BLACK);
+    //DrawCircleV(ascir(ball->p).pos, ascir(ball->p).radius * 1.1f, BLACK);
     Rectangle src  = { 0, 0, ball_tex.width, ball_tex.height };
     Rectangle dest = { ascir(ball->p).pos.x, ascir(ball->p).pos.y, ascir(ball->p).radius * 2, ascir(ball->p).radius * 2 };
     DrawTexturePro(ball_tex, src, dest, vec2(ascir(ball->p).radius, ascir(ball->p).radius), ball->rot, WHITE);

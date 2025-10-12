@@ -6,6 +6,7 @@
 #define color(r, g, b, a) (Color) {r, g, b, a}
 #define rec(x, y, w, h) (Rectangle) {x, y, w, h}
 #define clamp(val, min, max) (val < min ? min : val > max ? max : val)
+#define vec2zero vec2(0, 0)
 
 
 #endif /* MACROS_H */
