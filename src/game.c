@@ -30,6 +30,7 @@ static Texture2D bg_tex;
 static Texture2D player_tex;
 static Texture2D ball_tex;
 static int left_pick = -1, right_pick = -1;
+static int left_score = 0, right_score = 0;
 
 static void draw_recs(PObject *ps, int size)
 {
@@ -158,6 +159,9 @@ void draw_game(Game *game)
         show_fps = !show_fps;
     if (show_fps)
         DrawText(TextFormat("%i", GetFPS()), 8, 8, 32, BLACK);
+
+    DrawText(TextFormat("%i", left_score), 8, 32, 64, BLACK);
+    DrawText(TextFormat("%i", right_score), WIDTH - 8 - 64, 32, 64, BLACK);
 }
 
 void update_game(Game *game, float dt)
@@ -174,6 +178,20 @@ void update_game(Game *game, float dt)
     Player *a  = &game->players[0];
     Player *b  = &game->players[1];
     Ball *ball = &game->ball;
+
+    if (
+        ascir(ball->p).pos.x + ascir(ball->p).radius < asrec(game->bars[0]).x + asrec(game->bars[0]).width &&
+        ascir(ball->p).pos.y - ascir(ball->p).radius > asrec(game->bars[0]).y
+    ) {
+        right_score++;
+        reset_game(game);
+    } else if (
+        ascir(ball->p).pos.x - ascir(ball->p).radius > asrec(game->bars[1]).x &&
+        ascir(ball->p).pos.y - ascir(ball->p).radius > asrec(game->bars[1]).y
+    ) {
+        left_score++;
+        reset_game(game);
+    }
 
     if (IsKeyPressed(KEY_R)) {
         reset_game(game);
