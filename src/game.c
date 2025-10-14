@@ -1,7 +1,7 @@
 #include "game.h"
 #include "macros.h"
 #include "config.h"
-#include <raylib.h>
+#include "player.h"
 #include <raymath.h>
 
 
@@ -29,7 +29,6 @@
 static Texture2D bg_tex;
 static Texture2D player_tex;
 static Texture2D ball_tex;
-static int left_pick = -1, right_pick = -1;
 static int left_score = 0, right_score = 0;
 
 static void draw_recs(PObject *ps, int size)
@@ -63,38 +62,69 @@ static void reset_game(Game *game)
 
 static void draw_ui(Game *game)
 {
+    static int left_pick = -1, right_pick = -1;
+    const int char_per_row = 4;
+
+    int left_x  = IsKeyPressed(KEY_D) - IsKeyPressed(KEY_A);
+    int left_y  = IsKeyPressed(KEY_S) - IsKeyPressed(KEY_W);
+    int right_x = IsKeyPressed(KEY_RIGHT) - IsKeyPressed(KEY_LEFT);
+    int right_y = IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
+
+    if (left_x > 0) {
+        if ((left_pick + left_x) % PLAYER_SIZE == right_pick)
+            left_x++;
+
+        left_pick = (left_pick + left_x) % PLAYER_SIZE;
+    } else if (left_x < 0) {
+        if ((left_pick + left_x + char_per_row) % PLAYER_SIZE == right_pick)
+            left_x--;
+
+        left_pick = (left_pick + left_x + PLAYER_SIZE) % PLAYER_SIZE;
+    }
+    if (left_y > 0) {
+        if ((left_pick + char_per_row) % PLAYER_SIZE == right_pick)
+            left_y = 0;
+
+        left_pick = (left_pick + left_y * char_per_row) % PLAYER_SIZE;
+    } else if (left_y < 0) {
+        if ((left_pick - char_per_row + PLAYER_SIZE) % PLAYER_SIZE == right_pick)
+            left_y = 0;
+
+        left_pick = (left_pick + left_y * char_per_row + PLAYER_SIZE) % PLAYER_SIZE;
+    }
+
+    if (right_x > 0) {
+        if ((right_pick + right_x) % PLAYER_SIZE == left_pick)
+            right_x++;
+
+        right_pick = (right_pick + right_x) % PLAYER_SIZE;
+    } else if (right_x < 0) {
+        if ((right_pick + right_x + PLAYER_SIZE) % PLAYER_SIZE == left_pick)
+            right_x--;
+
+        right_pick = (right_pick + right_x + PLAYER_SIZE) % PLAYER_SIZE;
+    }
+    if (right_y > 0) {
+        if ((right_pick + char_per_row) % PLAYER_SIZE == left_pick)
+            right_y = 0;
+
+        right_pick = (right_pick + right_y * char_per_row) % PLAYER_SIZE;
+    } else if (right_y < 0) {
+        if ((right_pick - char_per_row + PLAYER_SIZE) % PLAYER_SIZE == left_pick)
+            right_y = 0;
+
+        right_pick = (right_pick + right_y * char_per_row + PLAYER_SIZE) % PLAYER_SIZE;
+    }
+
     Vector2 size = vec2(256, 256);
-    Vector2 pos  = vec2(80, (HEIGHT - size.y) / 2);
-
-    int left_i  = IsKeyPressed(KEY_D) - IsKeyPressed(KEY_A);
-    int right_i = IsKeyPressed(KEY_RIGHT) - IsKeyPressed(KEY_LEFT);
-
-    if (left_i > 0) {
-        if ((left_pick + left_i) % PLAYER_SIZE == right_pick)
-            left_i++;
-
-        left_pick = (left_pick + left_i) % PLAYER_SIZE;
-    } else if (left_i < 0) {
-        if ((left_pick + left_i + PLAYER_SIZE) % PLAYER_SIZE == right_pick)
-            left_i--;
-
-        left_pick = (left_pick + left_i + PLAYER_SIZE) % PLAYER_SIZE;
-    }
-
-    if (right_i > 0) {
-        if ((right_pick + right_i) % PLAYER_SIZE == left_pick)
-            right_i++;
-
-        right_pick = (right_pick + right_i) % PLAYER_SIZE;
-    } else if (right_i < 0) {
-        if ((right_pick + right_i + PLAYER_SIZE) % PLAYER_SIZE == left_pick)
-            right_i--;
-
-        right_pick = (right_pick + right_i + PLAYER_SIZE) % PLAYER_SIZE;
-    }
-
+    Vector2 pos  = vec2(80, (HEIGHT - size.y * 2) / 2);
     for (int i = 0; i < PLAYER_SIZE; i++) {
-        Rectangle src  = { player_tex.height * i, 0, player_tex.height, player_tex.height };
+        Rectangle src  = {
+            PLAYER_SPRITE_SIZE * i,
+            0,
+            PLAYER_SPRITE_SIZE,
+            PLAYER_SPRITE_SIZE
+        };
         Rectangle dest = {
             pos.x,
             pos.y,
@@ -111,6 +141,10 @@ static void draw_ui(Game *game)
         DrawRectangleRounded(frame, 0.15f, 0, c);
         DrawTexturePro(player_tex, src, dest, vec2(0, 0), 0, WHITE);
         pos.x += size.x + 32;
+        if ((i + 1) % char_per_row == 0) {
+            pos.x = 80;
+            pos.y += size.y + 32;
+        }
     }
 
     if (IsKeyPressed(KEY_ENTER)) {

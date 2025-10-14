@@ -9,12 +9,19 @@ typedef struct Player Player;
 #define PLAYER_LEFT_SIDE  0
 #define PLAYER_RIGHT_SIDE 1
 
-#define PLAYER_BRUNETTE 0
-#define PLAYER_BLONDE   1
-#define PLAYER_BLACK    2
-#define PLAYER_BALD  3
-#define PLAYER_LAST PLAYER_BALD
-#define PLAYER_SIZE (PLAYER_LAST + 1)
+#define PLAYER_SPRITE_SIZE 32
+
+enum {
+    PLAYER_BRUNETTE,
+    PLAYER_BLONDE,
+    PLAYER_BLACK,
+    PLAYER_BALD,
+    PLAYER_ASIAN,
+    PLAYER_MATRIX,
+    PLAYER_PANDA,
+    PLAYER_ALIEN,
+    PLAYER_SIZE, /* number of players */
+};
 
 struct Player {
     PObject p;

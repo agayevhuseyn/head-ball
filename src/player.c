@@ -36,7 +36,12 @@ void draw_player(Player *player, Texture2D sheet)
     }
 
     //DrawCircleV(ascir(player->p).pos, ascir(player->p).radius, color);
-    Rectangle src  = { sheet.height * player->index, 0, mul * sheet.height, sheet.height };
+    Rectangle src  = {
+        PLAYER_SPRITE_SIZE * player->index,
+        0,
+        mul * PLAYER_SPRITE_SIZE,
+        PLAYER_SPRITE_SIZE
+    };
     float radius = ascir(player->p).radius;
     Rectangle dest = {
         ascir(player->p).pos.x - radius,
