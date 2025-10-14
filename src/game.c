@@ -41,8 +41,8 @@ static void draw_recs(PObject *ps, int size)
 static void start_game(Game *game, int left, int right)
 {
     init_ball(&game->ball, BALL_START_POS, 32);
-    init_player(&game->players[0], left, PLAYER_LEFT_SIDE,  PLAYER_LEFT_START_POS,  64, SPEED, JMP_FORCE);
-    init_player(&game->players[1], right, PLAYER_RIGHT_SIDE, PLAYER_RIGHT_START_POS, 64, SPEED, JMP_FORCE);
+    init_player(&game->players[0], left, PLAYER_LEFT_SIDE, PLAYER_LEFT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
+    init_player(&game->players[1], right, PLAYER_RIGHT_SIDE, PLAYER_RIGHT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
 }
 
 static void reset_game(Game *game)
@@ -234,11 +234,20 @@ void update_game(Game *game, float dt)
     update_player(a, dt);
     update_player(b, dt);
 
+    int ball_push =
+        check_cir_coll(ascir(ball->p), ascir(a->p), NULL, NULL) &&
+        check_cir_coll(ascir(ball->p), ascir(b->p), NULL, NULL);
+
     update_ball(&game->ball, dt);
 
     handle_coll(&a->p, &b->p, dt);
     handle_coll(&ball->p, &a->p, dt);
     handle_coll(&ball->p, &b->p, dt);
+
+    if (ball_push) {
+        ball->p.velo.y = -80.0f * (sqrtf(a->p.mass) + sqrtf(b->p.mass));
+        ball->p.velo.x = clamp(ball->p.velo.x, -100, 100);
+    }
 
     a->p.on_ground = b->p.on_ground = 0;
     for (int i = 0; i < 4; i++) {
