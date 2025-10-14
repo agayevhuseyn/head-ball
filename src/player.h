@@ -10,6 +10,7 @@ typedef struct Player Player;
 #define PLAYER_RIGHT_SIDE 1
 
 #define PLAYER_SPRITE_SIZE 32
+#define PLAYER_GAME_SIZE 64
 
 enum {
     PLAYER_BRUNETTE,
@@ -30,6 +31,16 @@ struct Player {
     float jmp_force;
     int side;
     int index;
+    /* super */
+    struct {
+        int active;
+        int charged;
+        float chr_time;
+        float maxchr_time;
+        float use_time;
+        float cur;
+        float max;
+    } super;
 };
 
 Texture2D get_player_tex();

@@ -35,7 +35,7 @@ void draw_player(Player *player, Texture2D sheet)
         mul = -1;
     }
 
-    //DrawCircleV(ascir(player->p).pos, ascir(player->p).radius, color);
+    DrawCircleV(ascir(player->p).pos, ascir(player->p).radius, color);
     Rectangle src  = {
         PLAYER_SPRITE_SIZE * player->index,
         0,
@@ -55,6 +55,32 @@ void draw_player(Player *player, Texture2D sheet)
 #define gamepad_exist() (IsGamepadAvailable(0))
 #define gamepad_axis(a) (GetGamepadAxisMovement(0, (a)))
 
+static void super(Player *player)
+{
+    if (!player->super.active || !player->super.charged)
+        return;
+
+    player->super.charged = false;
+    player->super.chr_time = 0;
+
+    switch (player->index) {
+    case PLAYER_BALD:
+        ascir(player->p).radius = PLAYER_GAME_SIZE * player->super.cur;
+        player->p.mass *= 6;
+        break;
+    }
+}
+
+static void desuper(Player *player)
+{
+    switch (player->index) {
+    case PLAYER_BALD:
+        ascir(player->p).radius = PLAYER_GAME_SIZE;
+        player->p.mass /= 6;
+        break;
+    }
+}
+
 void update_player(Player *player, float dt)
 {
     if (player->side == PLAYER_LEFT_SIDE) {
@@ -71,6 +97,10 @@ void update_player(Player *player, float dt)
                 player->p.velo.y = player->jmp_force;
             }
         }
+
+        if (IsKeyPressed(KEY_E)) {
+            super(player);
+        }
     } else if (player->side == PLAYER_RIGHT_SIDE) {
         if (gamepad_exist()) {
             player->dir.x = gamepad_axis(GAMEPAD_AXIS_RIGHT_X);
@@ -85,6 +115,10 @@ void update_player(Player *player, float dt)
                 player->p.velo.y = player->jmp_force;
             }
         }
+
+        if (IsKeyPressed(KEY_RIGHT_CONTROL)) {
+            super(player);
+        }
     }
 
     player->p.velo.x = player->dir.x * player->speed;
@@ -97,5 +131,17 @@ void update_player(Player *player, float dt)
         //ascir(player->p).pos.y = GROUND - ascir(player->p).radius;
         //player->p.velo.y = 0;
         //player->can_jump = true;
+    }
+
+    /* super */
+    if (!player->super.active || player->super.charged)
+        return;
+
+    if (player->super.cur != 0 && (player->super.chr_time += dt) >= player->super.maxchr_time) {
+        player->super.charged = true;
+        player->super.chr_time = 0;
+        player->super.cur = 0.001f;
+    } else if ((player->super.cur += dt) >=player->super.max) {
+        player->super.cur = 0;
     }
 }
