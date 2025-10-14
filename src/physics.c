@@ -53,12 +53,22 @@ static void resolve_cir_cir(PObject *a, PObject *b, Vector2 normal, float depth)
 {
     if (a->isstatic && b->isstatic) return;
 
+    if (!a->bounce && !b->bounce) { /* players */
+        normal.y = 0;
+        normal = vec2unit(normal);
+    }
     // Push
     if (!a->isstatic && !b->isstatic) {
-        ascirp(a).pos.x -= normal.x * (depth * 0.5f);
-        ascirp(a).pos.y -= normal.y * (depth * 0.5f);
-        ascirp(b).pos.x += normal.x * (depth * 0.5f);
-        ascirp(b).pos.y += normal.y * (depth * 0.5f);
+        float inva = 1.0f / a->mass;
+        float invb = 1.0f / b->mass;
+        float invsumass = inva + invb;
+        float ra = inva / invsumass;
+        float rb = invb / invsumass;
+
+        ascirp(a).pos.x -= normal.x * (depth * ra);
+        ascirp(a).pos.y -= normal.y * (depth * ra);
+        ascirp(b).pos.x += normal.x * (depth * rb);
+        ascirp(b).pos.y += normal.y * (depth * rb);
     } else if (!a->isstatic) {
         ascirp(a).pos.x -= normal.x * depth;
         ascirp(a).pos.y -= normal.y * depth;
