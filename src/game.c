@@ -173,14 +173,18 @@ static void draw_gameui(Game *game)
     Vector2 bar_size = vec2(256, 32);
     float ratio_a, ratio_b;
     if (a->super.active) {
-        if (a->super.being_used) {
+        if (a->super.charged) {
+            ratio_a = 1.0f;
+        } else if (a->super.being_used) {
             ratio_a = a->super.use_time / a->super.maxuse_time;
         } else {
             ratio_a = a->super.chr_time / a->super.maxchr_time;
         }
     }
     if (b->super.active) {
-        if (b->super.being_used) {
+        if (b->super.charged) {
+            ratio_b = 1.0f;
+        } else if (b->super.being_used) {
             ratio_b = b->super.use_time / b->super.maxuse_time;
         } else {
             ratio_b = b->super.chr_time / b->super.maxchr_time;
@@ -191,17 +195,18 @@ static void draw_gameui(Game *game)
         DrawRectangleV(lbar_pos, bar_size, BLACK);
         DrawRectangleV(
             lbar_pos,
-            vec2(bar_size.x + bar_size.x * ratio_a, bar_size.y),
+            vec2(bar_size.x * ratio_a, bar_size.y),
             RED
         );
     }
 
     if (b->super.active) {
-        DrawRectangleV(rbar_pos, bar_size, BLACK);
+        DrawRectangleV(vec2(rbar_pos.x - bar_size.x, rbar_pos.y), bar_size, BLACK);
+        rbar_pos.x -= bar_size.x * ratio_b;
         DrawRectangleV(
-            lbar_pos,
-            vec2(bar_size.x + bar_size.x * ratio_a, bar_size.y),
-            RED
+            rbar_pos,
+            vec2(bar_size.x * ratio_b, bar_size.y),
+            BLUE
         );
     }
 }
