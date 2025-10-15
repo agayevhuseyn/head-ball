@@ -21,6 +21,22 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     player->jmp_force = jmp_force;
     player->side = side;
     player->index = index;
+
+    /* supers */
+    switch (index) {
+    case PLAYER_BALD:
+        player->super.active = true;
+        player->super.charged = false;
+        player->super.being_used = false;
+        player->super.chr_time = 0.0f;
+        player->super.maxchr_time = 5.0f;
+        player->super.use_time = 0.0f;
+        player->super.maxuse_time = 1.6f;
+        break;
+    default:
+        player->super.active = false;
+        break;
+    }
 }
 
 void draw_player(Player *player, Texture2D sheet)
@@ -35,7 +51,7 @@ void draw_player(Player *player, Texture2D sheet)
         mul = -1;
     }
 
-    DrawCircleV(ascir(player->p).pos, ascir(player->p).radius, color);
+    //DrawCircleV(ascir(player->p).pos, ascir(player->p).radius, color);
     Rectangle src  = {
         PLAYER_SPRITE_SIZE * player->index,
         0,
@@ -57,26 +73,29 @@ void draw_player(Player *player, Texture2D sheet)
 
 static void super(Player *player)
 {
-    if (!player->super.active || !player->super.charged)
+    if (!player->super.active || !player->super.charged || player->super.being_used)
         return;
 
     player->super.charged = false;
+    player->super.being_used = true;
     player->super.chr_time = 0;
 
     switch (player->index) {
     case PLAYER_BALD:
-        ascir(player->p).radius = PLAYER_GAME_SIZE * player->super.cur;
-        player->p.mass *= 6;
+        ascir(player->p).radius = PLAYER_GAME_SIZE * 2.0f;
+        player->p.mass *= 6.0f;
         break;
     }
 }
 
 static void desuper(Player *player)
 {
+    player->super.being_used = false;
+
     switch (player->index) {
     case PLAYER_BALD:
         ascir(player->p).radius = PLAYER_GAME_SIZE;
-        player->p.mass /= 6;
+        player->p.mass /= 6.0f;
         break;
     }
 }
@@ -137,11 +156,11 @@ void update_player(Player *player, float dt)
     if (!player->super.active || player->super.charged)
         return;
 
-    if (player->super.cur != 0 && (player->super.chr_time += dt) >= player->super.maxchr_time) {
+    if (player->super.being_used && (player->super.use_time -= dt) <= 0) {
+        desuper(player);
+    } else if ((player->super.chr_time += dt) >= player->super.maxchr_time) {
         player->super.charged = true;
         player->super.chr_time = 0;
-        player->super.cur = 0.001f;
-    } else if ((player->super.cur += dt) >=player->super.max) {
-        player->super.cur = 0;
+        player->super.use_time = player->super.maxuse_time;
     }
 }

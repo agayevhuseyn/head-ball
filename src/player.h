@@ -35,11 +35,11 @@ struct Player {
     struct {
         int active;
         int charged;
+        int being_used;
         float chr_time;
         float maxchr_time;
         float use_time;
-        float cur;
-        float max;
+        float maxuse_time;
     } super;
 };
 
