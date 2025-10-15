@@ -2,6 +2,7 @@
 #include "macros.h"
 #include "config.h"
 #include "player.h"
+#include <raylib.h>
 #include <raymath.h>
 
 
@@ -30,6 +31,7 @@ static Texture2D bg_tex;
 static Texture2D player_tex;
 static Texture2D ball_tex;
 static int left_score = 0, right_score = 0;
+static int show_fps = false;
 
 static void draw_recs(PObject *ps, int size)
 {
@@ -60,7 +62,7 @@ static void reset_game(Game *game)
     b->p.velo = vec2zero;
 }
 
-static void draw_ui(Game *game)
+static void draw_menu(Game *game)
 {
     static int left_pick = -1, right_pick = -1;
     const int char_per_row = 4;
@@ -155,6 +157,55 @@ static void draw_ui(Game *game)
     }
 }
 
+static void draw_gameui(Game *game)
+{
+    if (show_fps)
+        DrawText(TextFormat("%i", GetFPS()), 8, 8, 32, BLACK);
+
+    DrawText(TextFormat("%i", left_score), 64, 32, 64, BLACK);
+    DrawText(TextFormat("%i", right_score), WIDTH - 8 - 64 - 32, 32, 64, BLACK);
+
+    /* bars */
+    Player *a = &game->players[0];
+    Player *b = &game->players[1];
+    Vector2 lbar_pos = vec2(128, 32);
+    Vector2 rbar_pos = vec2(WIDTH - lbar_pos.x, lbar_pos.y);
+    Vector2 bar_size = vec2(256, 32);
+    float ratio_a, ratio_b;
+    if (a->super.active) {
+        if (a->super.being_used) {
+            ratio_a = a->super.use_time / a->super.maxuse_time;
+        } else {
+            ratio_a = a->super.chr_time / a->super.maxchr_time;
+        }
+    }
+    if (b->super.active) {
+        if (b->super.being_used) {
+            ratio_b = b->super.use_time / b->super.maxuse_time;
+        } else {
+            ratio_b = b->super.chr_time / b->super.maxchr_time;
+        }
+    }
+
+    if (a->super.active) {
+        DrawRectangleV(lbar_pos, bar_size, BLACK);
+        DrawRectangleV(
+            lbar_pos,
+            vec2(bar_size.x + bar_size.x * ratio_a, bar_size.y),
+            RED
+        );
+    }
+
+    if (b->super.active) {
+        DrawRectangleV(rbar_pos, bar_size, BLACK);
+        DrawRectangleV(
+            lbar_pos,
+            vec2(bar_size.x + bar_size.x * ratio_a, bar_size.y),
+            RED
+        );
+    }
+}
+
 void init_game(Game *game)
 {
     /* game */
@@ -175,13 +226,11 @@ void init_game(Game *game)
     game->borders[3] = pobject_staticrec(rec(WIDTH, 0, BOR_THICK, GROUND));
 }
 
-static int show_fps = false;
-
 void draw_game(Game *game)
 {
     DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
     if (game_onmenu(game)) {
-        draw_ui(game);
+        draw_menu(game);
         return;
     }
     //draw_recs(game, 2);
@@ -189,17 +238,15 @@ void draw_game(Game *game)
     draw_player(&game->players[1], player_tex);
     draw_ball(&game->ball, ball_tex);
     //draw_recs(game->borders, 4);
-    if (IsKeyPressed(KEY_F1))
-        show_fps = !show_fps;
-    if (show_fps)
-        DrawText(TextFormat("%i", GetFPS()), 8, 8, 32, BLACK);
 
-    DrawText(TextFormat("%i", left_score), 8, 32, 64, BLACK);
-    DrawText(TextFormat("%i", right_score), WIDTH - 8 - 64, 32, 64, BLACK);
+    draw_gameui(game);
 }
 
 void update_game(Game *game, float dt)
 {
+    if (IsKeyPressed(KEY_F1))
+        show_fps = !show_fps;
+
     if (game_onmenu(game)) {
         return;
     }
