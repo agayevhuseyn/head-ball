@@ -156,8 +156,9 @@ void update_player(Player *player, float dt)
     if (!player->super.active || player->super.charged)
         return;
 
-    if (player->super.being_used && (player->super.use_time -= dt) <= 0) {
-        desuper(player);
+    if (player->super.being_used) {
+        if ((player->super.use_time -= dt) <= 0)
+            desuper(player);
     } else if ((player->super.chr_time += dt) >= player->super.maxchr_time) {
         player->super.charged = true;
         player->super.chr_time = 0;
