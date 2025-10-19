@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "player.h"
 #include "ball.h"
+#include "input.h"
 
 #define GAME_STATE_MENU  0
 #define GAME_STATE_RUN   1
@@ -8,6 +9,7 @@
 
 typedef struct {
     Player players[2];
+    PlayerControl controls[2];
     Ball ball;
     PObject borders[4];
     PObject bars[2];

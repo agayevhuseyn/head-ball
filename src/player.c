@@ -29,7 +29,7 @@ void init_player(Player *player, int index, int side, Vector2 pos,
 
     /* ball hitbox */
     player->hboffset =
-        side == PLAYER_LEFT_SIDE
+        side == PLAYER_SIDE_LEFT
         ? vec2(radius / 1.0f, 0)
         : vec2(-radius / 1.0f, 0);
 
@@ -54,7 +54,7 @@ void draw_player(Player *player, Texture2D sheet)
 {
     Color color;
     int mul;
-    if (player->side == PLAYER_LEFT_SIDE) {
+    if (player->side == PLAYER_SIDE_LEFT) {
         color = RED;
         mul = 1;
     } else {
@@ -122,7 +122,7 @@ static void hit_straight(Ball *b, int side)
 {
     static const float velox = 1200;
     static const float veloy = -800;
-    if (side == PLAYER_LEFT_SIDE) {
+    if (side == PLAYER_SIDE_LEFT) {
         b->p.velo.x = velox;
     } else {
         b->p.velo.x = -velox;
@@ -135,7 +135,7 @@ static void hit_diagonal(Ball *b, int side)
     static const float velo = 2000;
     static const float deg = 30 * DEG2RAD;
     b->p.velo.y = -velo * sinf(deg);
-    if (side == PLAYER_LEFT_SIDE) {
+    if (side == PLAYER_SIDE_LEFT) {
         b->p.velo.x = velo * cosf(deg);
     } else {
         b->p.velo.x = -velo * cosf(deg);
@@ -145,66 +145,27 @@ static void hit_diagonal(Ball *b, int side)
 void update_player(Player *player, void *gameptr, float dt)
 {
     Game *game = (Game*)gameptr;
+    PlayerInputResult ires = get_playerinputresult(&game->controls[player->side]);
 
-    if (player->side == PLAYER_LEFT_SIDE) {
-        if (gamepadl_exist()) {
-            float ax = gamepadl_axis(GAMEPAD_AXIS_LEFT_X);
-            player->dir.x = fabs(ax) > 0.2f ? ax : 0;
-            if (player->p.on_ground && gamepadl_axis(GAMEPAD_AXIS_LEFT_Y) < -0.7f) {
-                player->p.on_ground = false;
-                player->p.velo.y = player->jmp_force;
-            }
-            if (gamepadl_btnpressed(GAMEPAD_BUTTON_RIGHT_FACE_UP)) {
-                super(player);
-            }
-        } else {
-            player->dir.x = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
-            if (player->p.on_ground && IsKeyPressed(KEY_W)) {
-                player->p.on_ground = false;
-                player->p.velo.y = player->jmp_force;
-            }
-            if (IsKeyPressed(KEY_E)) {
-                super(player);
-            }
-            Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
-            if (check_cir_coll(ascirp(&game->ball.p), (struct Circle) { hb_pos, hbradius }, NULL, NULL)) {
-                if (IsKeyPressed(KEY_F)) {
-                    hit_straight(&game->ball, player->side);
-                }
-                if (IsKeyPressed(KEY_R)) {
-                    hit_diagonal(&game->ball, player->side);
-                }
-            }
+            //if (player->p.on_ground && gamepadl_axis(GAMEPAD_AXIS_LEFT_Y) < -0.7f) {
+            //    player->p.on_ground = false;
+    player->dir.x = ires.iaxis.x;
+
+    if (ires.iaxis.y < 0 && player->p.on_ground) {
+        player->p.on_ground = false;
+        player->p.velo.y = player->jmp_force;
+    }
+
+    if (ires.super_btn)
+        super(player);
+
+    Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
+    if (check_cir_coll(ascirp(&game->ball.p), (Circle) { hb_pos, hbradius }, NULL, NULL)) {
+        if (ires.strhit_btn) {
+            hit_straight(&game->ball, player->side);
         }
-    } else if (player->side == PLAYER_RIGHT_SIDE) {
-        if (gamepadr_exist()) {
-            float ax = gamepadr_axis(GAMEPAD_AXIS_LEFT_X);
-            player->dir.x = fabs(ax) > 0.2f ? ax : 0;
-            if (player->p.on_ground && gamepadr_axis(GAMEPAD_AXIS_LEFT_Y) < -0.7f) {
-                player->p.on_ground = false;
-                player->p.velo.y = player->jmp_force;
-            }
-            if (gamepadr_btnpressed(GAMEPAD_BUTTON_RIGHT_FACE_UP)) {
-                super(player);
-            }
-        } else {
-            player->dir.x = IsKeyDown(KEY_RIGHT) - IsKeyDown(KEY_LEFT);
-            if (player->p.on_ground && IsKeyPressed(KEY_UP)) {
-                player->p.on_ground = false;
-                player->p.velo.y = player->jmp_force;
-            }
-            if (IsKeyPressed(KEY_RIGHT_CONTROL)) {
-                super(player);
-            }
-            Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
-            if (check_cir_coll(ascirp(&game->ball.p), (struct Circle) { hb_pos, hbradius }, NULL, NULL)) {
-                if (IsKeyPressed(KEY_L)) {
-                    hit_straight(&game->ball, player->side);
-                }
-                if (IsKeyPressed(KEY_O)) {
-                    hit_diagonal(&game->ball, player->side);
-                }
-            }
+        if (ires.uphit_btn) {
+            hit_diagonal(&game->ball, player->side);
         }
     }
 

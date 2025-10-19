@@ -4,8 +4,8 @@
 #include <raylib.h>
 #include "physics.h"
 
-#define PLAYER_LEFT_SIDE  0
-#define PLAYER_RIGHT_SIDE 1
+#define PLAYER_SIDE_LEFT  0
+#define PLAYER_SIDE_RIGHT 1
 
 #define PLAYER_SPRITE_SIZE 32
 #define PLAYER_GAME_SIZE 64

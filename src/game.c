@@ -27,6 +27,43 @@
 #define PLAYER_LEFT_START_POS  vec2(256, 400)
 #define PLAYER_RIGHT_START_POS vec2(1024, 400)
 
+/* CONTROLS */
+static PlayerControl control_left = { /* left */
+    .gamepad_id = PLAYER_SIDE_LEFT,
+    .gamepad = {
+        .super_btn  = GAMEPAD_BUTTON_RIGHT_FACE_UP,
+        .strhit_btn = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
+        .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT
+    },
+    .keyboard = {
+        .left_btn   = KEY_A,
+        .right_btn  = KEY_D,
+        .up_btn     = KEY_W,
+        .down_btn   = KEY_S,
+        .super_btn  = KEY_SPACE,
+        .strhit_btn = KEY_F,
+        .uphit_btn  = KEY_E,
+    }
+};
+
+static PlayerControl control_right = { /* right */
+    .gamepad_id = PLAYER_SIDE_RIGHT,
+    .gamepad = {
+        .super_btn  = GAMEPAD_BUTTON_RIGHT_FACE_UP,
+        .strhit_btn = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
+        .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT
+    },
+    .keyboard = {
+        .left_btn   = KEY_LEFT,
+        .right_btn  = KEY_RIGHT,
+        .up_btn     = KEY_UP,
+        .down_btn   = KEY_DOWN,
+        .super_btn  = KEY_ENTER,
+        .strhit_btn = KEY_RIGHT_CONTROL,
+        .uphit_btn  = KEY_RIGHT_SHIFT,
+    }
+};
+
 static Texture2D bg_tex;
 static Texture2D player_tex;
 static Texture2D ball_tex;
@@ -43,8 +80,8 @@ static void draw_recs(PObject *ps, int size)
 static void start_game(Game *game, int left, int right)
 {
     init_ball(&game->ball, BALL_START_POS, 32);
-    init_player(&game->players[0], left, PLAYER_LEFT_SIDE, PLAYER_LEFT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
-    init_player(&game->players[1], right, PLAYER_RIGHT_SIDE, PLAYER_RIGHT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
+    init_player(&game->players[PLAYER_SIDE_LEFT], left, PLAYER_SIDE_LEFT, PLAYER_LEFT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
+    init_player(&game->players[PLAYER_SIDE_RIGHT], right, PLAYER_SIDE_RIGHT, PLAYER_RIGHT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
 }
 
 static void reset_game(Game *game)
@@ -103,10 +140,13 @@ static void draw_menu(Game *game)
     static const int cols = 4;
     static const int rows = 2;
 
-    int left_x  = IsKeyPressed(KEY_D) - IsKeyPressed(KEY_A);
-    int left_y  = IsKeyPressed(KEY_S) - IsKeyPressed(KEY_W);
-    int right_x = IsKeyPressed(KEY_RIGHT) - IsKeyPressed(KEY_LEFT);
-    int right_y = IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
+    PlayerInputResult lres = get_playerinputresult(&game->controls[PLAYER_SIDE_LEFT]);
+    PlayerInputResult rres = get_playerinputresult(&game->controls[PLAYER_SIDE_RIGHT]);
+
+    int left_x  = lres.press_axis.x;
+    int left_y  = lres.press_axis.y;
+    int right_x = rres.press_axis.x;
+    int right_y = rres.press_axis.y;
 
     if (left_x || left_y)
         left_pick  = move_picker(left_pick, left_x, left_y, right_pick, cols, rows);
@@ -215,10 +255,13 @@ void init_game(Game *game)
     player_tex = LoadTexture("assets/player.png");
     ball_tex = LoadTexture("assets/ball.png");
     /* ball */
-    /* players */
+    /* players controls */
+    /* gamepad */
+    game->controls[PLAYER_SIDE_LEFT]  = control_left;
+    game->controls[PLAYER_SIDE_RIGHT] = control_right;
     /* bars */
-    game->bars[0] = pobject_staticrec(rec(0, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
-    game->bars[1] = pobject_staticrec(rec(WIDTH - BAR_WIDTH, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
+    game->bars[PLAYER_SIDE_LEFT]  = pobject_staticrec(rec(0, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
+    game->bars[PLAYER_SIDE_RIGHT] = pobject_staticrec(rec(WIDTH - BAR_WIDTH, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
     /* borders */
     game->borders[0] = pobject_staticrec(rec(0, 0 - BOR_THICK, WIDTH, BOR_THICK));
     game->borders[1] = pobject_staticrec(rec(0, GROUND, WIDTH, BOR_THICK));
