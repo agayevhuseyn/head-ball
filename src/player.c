@@ -1,7 +1,12 @@
 #include "player.h"
 #include "config.h"
 #include "macros.h"
+#include <math.h>
+#include <raymath.h>
+#include "game.h"
 
+
+static const float hbradius = 60;
 
 void init_player(Player *player, int index, int side, Vector2 pos,
                  float radius, float speed, float jmp_force)
@@ -21,6 +26,12 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     player->jmp_force = jmp_force;
     player->side = side;
     player->index = index;
+
+    /* ball hitbox */
+    player->hboffset =
+        side == PLAYER_LEFT_SIDE
+        ? vec2(radius / 1.0f, 0)
+        : vec2(-radius / 1.0f, 0);
 
     /* supers */
     switch (index) {
@@ -65,11 +76,18 @@ void draw_player(Player *player, Texture2D sheet)
         radius * 2,
         radius * 2
     };
+    Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
+    DrawCircleV(hb_pos, hbradius, color);
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
 }
 
-#define gamepad_exist() (IsGamepadAvailable(0))
-#define gamepad_axis(a) (GetGamepadAxisMovement(0, (a)))
+#define gamepadl_exist() (IsGamepadAvailable(0))
+#define gamepadl_axis(a) (GetGamepadAxisMovement(0, (a)))
+#define gamepadl_btnpressed(b) (IsGamepadButtonPressed(0, (b)))
+
+#define gamepadr_exist() (IsGamepadAvailable(1))
+#define gamepadr_axis(a) (GetGamepadAxisMovement(1, (a)))
+#define gamepadr_btnpressed(b) (IsGamepadButtonPressed(1, (b)))
 
 static void super(Player *player)
 {
@@ -100,14 +118,44 @@ static void desuper(Player *player)
     }
 }
 
-void update_player(Player *player, float dt)
+static void hit_straight(Ball *b, int side)
 {
+    static const float velox = 1200;
+    static const float veloy = -800;
+    if (side == PLAYER_LEFT_SIDE) {
+        b->p.velo.x = velox;
+    } else {
+        b->p.velo.x = -velox;
+    }
+    b->p.velo.y = 0;
+}
+
+static void hit_diagonal(Ball *b, int side)
+{
+    static const float velo = 2000;
+    static const float deg = 30 * DEG2RAD;
+    b->p.velo.y = -velo * sinf(deg);
+    if (side == PLAYER_LEFT_SIDE) {
+        b->p.velo.x = velo * cosf(deg);
+    } else {
+        b->p.velo.x = -velo * cosf(deg);
+    }
+}
+
+void update_player(Player *player, void *gameptr, float dt)
+{
+    Game *game = (Game*)gameptr;
+
     if (player->side == PLAYER_LEFT_SIDE) {
-        if (gamepad_exist()) {
-            player->dir.x = gamepad_axis(GAMEPAD_AXIS_LEFT_X);
-            if (player->p.on_ground && gamepad_axis(GAMEPAD_AXIS_LEFT_Y) < -0.7f) {
+        if (gamepadl_exist()) {
+            float ax = gamepadl_axis(GAMEPAD_AXIS_LEFT_X);
+            player->dir.x = fabs(ax) > 0.2f ? ax : 0;
+            if (player->p.on_ground && gamepadl_axis(GAMEPAD_AXIS_LEFT_Y) < -0.7f) {
                 player->p.on_ground = false;
                 player->p.velo.y = player->jmp_force;
+            }
+            if (gamepadl_btnpressed(GAMEPAD_BUTTON_RIGHT_FACE_UP)) {
+                super(player);
             }
         } else {
             player->dir.x = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
@@ -115,17 +163,29 @@ void update_player(Player *player, float dt)
                 player->p.on_ground = false;
                 player->p.velo.y = player->jmp_force;
             }
-        }
-
-        if (IsKeyPressed(KEY_E)) {
-            super(player);
+            if (IsKeyPressed(KEY_E)) {
+                super(player);
+            }
+            Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
+            if (check_cir_coll(ascirp(&game->ball.p), (struct Circle) { hb_pos, hbradius }, NULL, NULL)) {
+                if (IsKeyPressed(KEY_F)) {
+                    hit_straight(&game->ball, player->side);
+                }
+                if (IsKeyPressed(KEY_R)) {
+                    hit_diagonal(&game->ball, player->side);
+                }
+            }
         }
     } else if (player->side == PLAYER_RIGHT_SIDE) {
-        if (gamepad_exist()) {
-            player->dir.x = gamepad_axis(GAMEPAD_AXIS_RIGHT_X);
-            if (player->p.on_ground && gamepad_axis(GAMEPAD_AXIS_RIGHT_Y) < -0.7f) {
+        if (gamepadr_exist()) {
+            float ax = gamepadr_axis(GAMEPAD_AXIS_LEFT_X);
+            player->dir.x = fabs(ax) > 0.2f ? ax : 0;
+            if (player->p.on_ground && gamepadr_axis(GAMEPAD_AXIS_LEFT_Y) < -0.7f) {
                 player->p.on_ground = false;
                 player->p.velo.y = player->jmp_force;
+            }
+            if (gamepadr_btnpressed(GAMEPAD_BUTTON_RIGHT_FACE_UP)) {
+                super(player);
             }
         } else {
             player->dir.x = IsKeyDown(KEY_RIGHT) - IsKeyDown(KEY_LEFT);
@@ -133,10 +193,18 @@ void update_player(Player *player, float dt)
                 player->p.on_ground = false;
                 player->p.velo.y = player->jmp_force;
             }
-        }
-
-        if (IsKeyPressed(KEY_RIGHT_CONTROL)) {
-            super(player);
+            if (IsKeyPressed(KEY_RIGHT_CONTROL)) {
+                super(player);
+            }
+            Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
+            if (check_cir_coll(ascirp(&game->ball.p), (struct Circle) { hb_pos, hbradius }, NULL, NULL)) {
+                if (IsKeyPressed(KEY_L)) {
+                    hit_straight(&game->ball, player->side);
+                }
+                if (IsKeyPressed(KEY_O)) {
+                    hit_diagonal(&game->ball, player->side);
+                }
+            }
         }
     }
 
@@ -145,12 +213,6 @@ void update_player(Player *player, float dt)
 
     player->p.velo.y += GRAVITY * dt;
     ascir(player->p).pos.y += player->p.velo.y * dt;
-
-    if (ascir(player->p).pos.y + ascir(player->p).radius >= GROUND) {
-        //ascir(player->p).pos.y = GROUND - ascir(player->p).radius;
-        //player->p.velo.y = 0;
-        //player->can_jump = true;
-    }
 
     /* super */
     if (!player->super.active || player->super.charged)

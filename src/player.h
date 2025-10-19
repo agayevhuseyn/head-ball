@@ -31,6 +31,7 @@ struct Player {
     float jmp_force;
     int side;
     int index;
+    Vector2 hboffset;
     /* super */
     struct {
         int active;
@@ -46,6 +47,6 @@ struct Player {
 Texture2D get_player_tex();
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);
 void draw_player(Player *player, Texture2D sheet);
-void update_player(Player *player, float dt);
+void update_player(Player *player, void *gameptr, float dt);
 
 #endif
