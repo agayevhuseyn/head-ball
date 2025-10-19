@@ -4,8 +4,6 @@
 #include <raylib.h>
 #include "physics.h"
 
-typedef struct Player Player;
-
 #define PLAYER_LEFT_SIDE  0
 #define PLAYER_RIGHT_SIDE 1
 
@@ -24,7 +22,7 @@ enum {
     PLAYER_SIZE, /* number of players */
 };
 
-struct Player {
+typedef struct {
     PObject p;
     Vector2 dir;
     float speed;
@@ -42,7 +40,7 @@ struct Player {
         float use_time;
         float maxuse_time;
     } super;
-};
+} Player;
 
 Texture2D get_player_tex();
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);

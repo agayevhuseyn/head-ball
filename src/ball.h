@@ -5,12 +5,10 @@
 #include "player.h"
 #include "physics.h"
 
-typedef struct Ball Ball;
-
-struct Ball {
+typedef struct {
     PObject p;
     float rot;
-};
+} Ball;
 
 void init_ball(Ball *ball, Vector2 pos, float radius);
 void draw_ball(Ball *ball, Texture2D tex);

@@ -5,21 +5,17 @@
 #include <raylib.h>
 
 
-typedef struct Circle Circle;
-
-struct Circle {
+typedef struct {
     Vector2 pos;
     float radius;
-};
-
-typedef struct PObject PObject;
+} Circle;
 
 enum {
     POBJECT_CIR,
     POBJECT_REC
 };
 
-struct PObject {
+typedef struct {
     int type;
     union {
         Circle c;
@@ -32,7 +28,7 @@ struct PObject {
     float mass;
     float eloss;
     Vector2 velo;
-};
+} PObject;
 
 #define pobject_staticrec(rect) (PObject) { \
     .type = POBJECT_REC, \
