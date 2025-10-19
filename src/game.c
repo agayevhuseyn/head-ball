@@ -279,12 +279,12 @@ void update_game(Game *game, float dt)
         reset_game(game);
     }
 
-    if (IsKeyPressed(KEY_R)) {
+    if (IsKeyPressed(KEY_F5)) {
         reset_game(game);
     }
 
-    update_player(a, dt);
-    update_player(b, dt);
+    update_player(a, game, dt);
+    update_player(b, game, dt);
 
     int ball_push =
         check_cir_coll(ascir(ball->p), ascir(a->p), NULL, NULL) &&
