@@ -12,9 +12,9 @@
 #define game_onpause(g) ((g)->state == GAME_STATE_PAUSE)
 
 /* BAR */
-#define BAR_WIDTH  156
-#define BAR_HEIGHT 32
-#define BAR_POS_Y  328
+#define BAR_WIDTH  180
+#define BAR_HEIGHT 36
+#define BAR_POS_Y  320
 
 #define BOR_THICK 32
 
@@ -65,6 +65,7 @@ static PlayerControl control_right = { /* right */
 };
 
 static Texture2D bg_tex;
+static Texture2D front_tex;
 static Texture2D player_tex;
 static Texture2D ball_tex;
 static int left_score = 0, right_score = 0;
@@ -252,6 +253,7 @@ void init_game(Game *game)
     game->state = GAME_STATE_MENU;
     /* textures */
     bg_tex = LoadTexture("assets/bg.png");
+    front_tex = LoadTexture("assets/front.png");
     player_tex = LoadTexture("assets/player.png");
     ball_tex = LoadTexture("assets/ball.png");
     /* ball */
@@ -273,14 +275,16 @@ void draw_game(Game *game)
 {
     DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
     if (game_onmenu(game)) {
+        DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
         draw_menu(game);
         return;
     }
-    //draw_recs(game, 2);
+    //draw_recs(game->bars, 2);
     draw_player(&game->players[0], player_tex);
     draw_player(&game->players[1], player_tex);
     draw_ball(&game->ball, ball_tex);
     //draw_recs(game->borders, 4);
+    DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
 
     draw_gameui(game);
 }
