@@ -66,9 +66,16 @@ static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
 {
     int col = pick % cols;
     int row = pick / cols;
+    int other_col = other % cols;
+    int other_row = other / cols;
 
     int new_col = col + dx;
     int new_row = row + dy;
+
+    if (new_col == other_col && new_row == other_row) {
+        new_col += dx;
+        new_row += dy;
+    }
 
     if (new_col < 0)
         new_col = cols - 1;
@@ -80,18 +87,18 @@ static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
     else if (new_row > rows - 1)
         new_row = 0;
 
-    int new_pick = new_col + new_row * cols;
+    if (new_col == other_col && new_row == other_row) {
+        new_col += dx;
+        new_row += dy;
+    }
 
-    if (new_pick == other)
-        return pick;
-
-    return new_pick;
+    return new_col + new_row * cols;
 }
 
 static void draw_menu(Game *game)
 {
-    static int left_pick  = 0;
-    static int right_pick = 1;
+    static int left_pick  = -1;
+    static int right_pick = -1;
 
     static const int cols = 4;
     static const int rows = 2;
@@ -101,8 +108,10 @@ static void draw_menu(Game *game)
     int right_x = IsKeyPressed(KEY_RIGHT) - IsKeyPressed(KEY_LEFT);
     int right_y = IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
 
-    left_pick  = move_picker(left_pick, left_x, left_y, right_pick, cols, rows);
-    right_pick = move_picker(right_pick, right_x, right_y, left_pick, cols, rows);
+    if (left_x || left_y)
+        left_pick  = move_picker(left_pick, left_x, left_y, right_pick, cols, rows);
+    if (right_x || right_y)
+        right_pick = move_picker(right_pick, right_x, right_y, left_pick, cols, rows);
     
     Vector2 size = vec2(256, 256);
     Vector2 pos  = vec2(80, (HEIGHT - size.y * 2) / 2);
