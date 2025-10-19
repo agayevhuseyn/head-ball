@@ -62,62 +62,48 @@ static void reset_game(Game *game)
     b->p.velo = vec2zero;
 }
 
+static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
+{
+    int col = pick % cols;
+    int row = pick / cols;
+
+    int new_col = col + dx;
+    int new_row = row + dy;
+
+    if (new_col < 0)
+        new_col = cols - 1;
+    else if (new_col > cols - 1)
+        new_col = 0;
+
+    if (new_row < 0)
+        new_row = rows - 1;
+    else if (new_row > rows - 1)
+        new_row = 0;
+
+    int new_pick = new_col + new_row * cols;
+
+    if (new_pick == other)
+        return pick;
+
+    return new_pick;
+}
+
 static void draw_menu(Game *game)
 {
-    static int left_pick = -1, right_pick = -1;
-    const int char_per_row = 4;
+    static int left_pick  = 0;
+    static int right_pick = 1;
+
+    static const int cols = 4;
+    static const int rows = 2;
 
     int left_x  = IsKeyPressed(KEY_D) - IsKeyPressed(KEY_A);
     int left_y  = IsKeyPressed(KEY_S) - IsKeyPressed(KEY_W);
     int right_x = IsKeyPressed(KEY_RIGHT) - IsKeyPressed(KEY_LEFT);
     int right_y = IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
 
-    if (left_x > 0) {
-        if ((left_pick + left_x) % PLAYER_SIZE == right_pick)
-            left_x++;
-
-        left_pick = (left_pick + left_x) % PLAYER_SIZE;
-    } else if (left_x < 0) {
-        if ((left_pick + left_x + char_per_row) % PLAYER_SIZE == right_pick)
-            left_x--;
-
-        left_pick = (left_pick + left_x + PLAYER_SIZE) % PLAYER_SIZE;
-    }
-    if (left_y > 0) {
-        if ((left_pick + char_per_row) % PLAYER_SIZE == right_pick)
-            left_y = 0;
-
-        left_pick = (left_pick + left_y * char_per_row) % PLAYER_SIZE;
-    } else if (left_y < 0) {
-        if ((left_pick - char_per_row + PLAYER_SIZE) % PLAYER_SIZE == right_pick)
-            left_y = 0;
-
-        left_pick = (left_pick + left_y * char_per_row + PLAYER_SIZE) % PLAYER_SIZE;
-    }
-
-    if (right_x > 0) {
-        if ((right_pick + right_x) % PLAYER_SIZE == left_pick)
-            right_x++;
-
-        right_pick = (right_pick + right_x) % PLAYER_SIZE;
-    } else if (right_x < 0) {
-        if ((right_pick + right_x + PLAYER_SIZE) % PLAYER_SIZE == left_pick)
-            right_x--;
-
-        right_pick = (right_pick + right_x + PLAYER_SIZE) % PLAYER_SIZE;
-    }
-    if (right_y > 0) {
-        if ((right_pick + char_per_row) % PLAYER_SIZE == left_pick)
-            right_y = 0;
-
-        right_pick = (right_pick + right_y * char_per_row) % PLAYER_SIZE;
-    } else if (right_y < 0) {
-        if ((right_pick - char_per_row + PLAYER_SIZE) % PLAYER_SIZE == left_pick)
-            right_y = 0;
-
-        right_pick = (right_pick + right_y * char_per_row + PLAYER_SIZE) % PLAYER_SIZE;
-    }
-
+    left_pick  = move_picker(left_pick, left_x, left_y, right_pick, cols, rows);
+    right_pick = move_picker(right_pick, right_x, right_y, left_pick, cols, rows);
+    
     Vector2 size = vec2(256, 256);
     Vector2 pos  = vec2(80, (HEIGHT - size.y * 2) / 2);
     for (int i = 0; i < PLAYER_SIZE; i++) {
@@ -143,7 +129,7 @@ static void draw_menu(Game *game)
         DrawRectangleRounded(frame, 0.15f, 0, c);
         DrawTexturePro(player_tex, src, dest, vec2(0, 0), 0, WHITE);
         pos.x += size.x + 32;
-        if ((i + 1) % char_per_row == 0) {
+        if ((i + 1) % cols == 0) {
             pos.x = 80;
             pos.y += size.y + 32;
         }
