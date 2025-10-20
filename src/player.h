@@ -12,11 +12,11 @@
 
 enum {
     PLAYER_BRUNETTE,
-    PLAYER_BLONDE,
     PLAYER_BLACK,
     PLAYER_BALD,
     PLAYER_ASIAN,
     PLAYER_MATRIX,
+    PLAYER_HACKER,
     PLAYER_PANDA,
     PLAYER_ALIEN,
     PLAYER_SIZE, /* number of players */
@@ -41,6 +41,8 @@ typedef struct {
         float use_time;
         float maxuse_time;
     } super;
+    /* side effect of opponent */
+    int reverse;
 } Player;
 
 Texture2D get_player_tex();

@@ -34,17 +34,10 @@ void draw_ball(Ball *ball, Texture2D tex)
 
 void update_ball(Ball *ball, float dt)
 {
-    // Gravity + motion
     ball->p.velo.y += GRAVITY * dt * ball->time_scale;
     ascir(ball->p).pos.x += ball->p.velo.x * dt * ball->time_scale;
     ascir(ball->p).pos.y += ball->p.velo.y * dt * ball->time_scale;
 
-    // Ground collision
-    //if (ascir(ball->p).pos.y + ascir(ball->p).radius >= GROUND) {
-    //    ascir(ball->p).pos.y = GROUND - ascir(ball->p).radius;
-    //    ball->p.velo.y *= -0.75f; // energy loss
-    //    ball->p.velo.x *= FRICTION;  // friction
-    //}
     ball->rot += (ball->p.velo.x / ascir(ball->p).radius) * RAD2DEG * dt * ball->time_scale;
     if (IsMouseButtonDown(0)) {
         ascir(ball->p).pos = GetMousePosition();

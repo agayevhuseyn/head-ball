@@ -46,8 +46,13 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         break;
     case PLAYER_MATRIX:
         player->super.active = true;
-        player->super.maxchr_time = 1.0f;
+        player->super.maxchr_time = 10.0f;
         player->super.maxuse_time = 5.0f;
+        break;
+    case PLAYER_HACKER:
+        player->super.active = true;
+        player->super.maxchr_time = 8.0f;
+        player->super.maxuse_time = 3.0f;
         break;
     default:
         player->super.active = false;
@@ -111,6 +116,14 @@ static void super(Player *player, Game *game)
     case PLAYER_MATRIX:
         game->ball.time_scale = 0.25f;
         break;
+    case PLAYER_HACKER:
+        game->players[
+            player->side == PLAYER_SIDE_LEFT
+            ? PLAYER_SIDE_RIGHT
+            : PLAYER_SIDE_LEFT
+        ]
+        .reverse = true;
+        break;
     }
 }
 
@@ -125,6 +138,14 @@ static void desuper(Player *player, Game *game)
         break;
     case PLAYER_MATRIX:
         game->ball.time_scale = 1.0f;
+        break;
+    case PLAYER_HACKER:
+        game->players[
+            player->side == PLAYER_SIDE_LEFT
+            ? PLAYER_SIDE_RIGHT
+            : PLAYER_SIDE_LEFT
+        ]
+        .reverse = false;
         break;
     }
 }
@@ -158,9 +179,7 @@ void update_player(Player *player, void *gameptr, float dt)
     Game *game = (Game*)gameptr;
     PlayerInputResult ires = get_playerinputresult(&game->controls[player->side]);
 
-            //if (player->p.on_ground && gamepadl_axis(GAMEPAD_AXIS_LEFT_Y) < -0.7f) {
-            //    player->p.on_ground = false;
-    player->dir.x = ires.iaxis.x;
+    player->dir.x = player->reverse ? -ires.iaxis.x : ires.iaxis.x;
 
     if (ires.press_axis.y < 0 && player->p.on_ground) {
         player->p.on_ground = false;
