@@ -151,7 +151,7 @@ void update_player(Player *player, void *gameptr, float dt)
             //    player->p.on_ground = false;
     player->dir.x = ires.iaxis.x;
 
-    if (ires.iaxis.y < 0 && player->p.on_ground) {
+    if (ires.press_axis.y < 0 && player->p.on_ground) {
         player->p.on_ground = false;
         player->p.velo.y = player->jmp_force;
     }
