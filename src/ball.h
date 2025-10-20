@@ -8,6 +8,7 @@
 typedef struct {
     PObject p;
     float rot;
+    /* supers from players */
     float time_scale;
 } Ball;
 

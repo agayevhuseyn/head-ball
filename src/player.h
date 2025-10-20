@@ -42,7 +42,7 @@ typedef struct {
         float maxuse_time;
     } super;
     /* side effect of opponent */
-    int reverse;
+    int revctrl;
 } Player;
 
 Texture2D get_player_tex();

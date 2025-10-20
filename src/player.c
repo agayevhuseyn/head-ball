@@ -26,6 +26,7 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     player->jmp_force = jmp_force;
     player->side = side;
     player->index = index;
+    player->revctrl = false;
 
     /* ball hitbox */
     player->hboffset =
@@ -53,6 +54,11 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         player->super.active = true;
         player->super.maxchr_time = 8.0f;
         player->super.maxuse_time = 3.0f;
+        break;
+    case PLAYER_ALIEN:
+        player->super.active = true;
+        player->super.maxchr_time = 1;
+        player->super.maxuse_time = 0.0f;
         break;
     default:
         player->super.active = false;
@@ -87,7 +93,7 @@ void draw_player(Player *player, Texture2D sheet)
         radius * 2
     };
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
-    DrawCircleV(hb_pos, player->hbradius, color);
+    //DrawCircleV(hb_pos, player->hbradius, color);
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
 }
 
@@ -122,8 +128,21 @@ static void super(Player *player, Game *game)
             ? PLAYER_SIDE_RIGHT
             : PLAYER_SIDE_LEFT
         ]
-        .reverse = true;
+        .revctrl = true;
         break;
+    case PLAYER_ALIEN: {
+        Vector2 *op_pos_p = 
+            &ascir(game->players[
+                player->side == PLAYER_SIDE_LEFT
+                ? PLAYER_SIDE_RIGHT
+                : PLAYER_SIDE_LEFT
+            ].p)
+            .pos;
+        Vector2 op_pos = *op_pos_p;
+        *op_pos_p = ascir(player->p).pos;
+        ascir(player->p).pos = op_pos;
+        break;
+    }
     }
 }
 
@@ -145,15 +164,14 @@ static void desuper(Player *player, Game *game)
             ? PLAYER_SIDE_RIGHT
             : PLAYER_SIDE_LEFT
         ]
-        .reverse = false;
+        .revctrl = false;
         break;
     }
 }
 
 static void hit_straight(Ball *b, int side)
 {
-    static const float velox = 1200;
-    static const float veloy = -800;
+    static const float velox = 2000;
     if (side == PLAYER_SIDE_LEFT) {
         b->p.velo.x = velox;
     } else {
@@ -179,7 +197,7 @@ void update_player(Player *player, void *gameptr, float dt)
     Game *game = (Game*)gameptr;
     PlayerInputResult ires = get_playerinputresult(&game->controls[player->side]);
 
-    player->dir.x = player->reverse ? -ires.iaxis.x : ires.iaxis.x;
+    player->dir.x = player->revctrl ? -ires.iaxis.x : ires.iaxis.x;
 
     if (ires.press_axis.y < 0 && player->p.on_ground) {
         player->p.on_ground = false;
