@@ -13,8 +13,8 @@ void init_ball(Ball *ball, Vector2 pos, float radius)
     ball->p.type = POBJECT_CIR;
     ball->p.isstatic = false;
     ball->p.bounce = true;
-    ball->p.fric = 0.02f; /* [0, 1] */
-    ball->p.mass = 10;
+    ball->p.fric = 0.01f; /* [0, 1] */
+    ball->p.mass = 37.5f;
     ball->p.eloss = 0.25f; /* [0, 1] */
     ascir(ball->p).pos = pos;
     ascir(ball->p).radius = radius;
