@@ -8,6 +8,7 @@
 typedef struct {
     PObject p;
     float rot;
+    float time_scale;
 } Ball;
 
 void init_ball(Ball *ball, Vector2 pos, float radius);

@@ -34,15 +34,20 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         : vec2(-radius / 1.0f, 0);
 
     /* supers */
+    player->super.charged = false;
+    player->super.being_used = false;
+    player->super.chr_time = 0.0f;
+    player->super.use_time = 0.0f;
     switch (index) {
     case PLAYER_BALD:
         player->super.active = true;
-        player->super.charged = false;
-        player->super.being_used = false;
-        player->super.chr_time = 0.0f;
         player->super.maxchr_time = 5.0f;
-        player->super.use_time = 0.0f;
         player->super.maxuse_time = 1.6f;
+        break;
+    case PLAYER_MATRIX:
+        player->super.active = true;
+        player->super.maxchr_time = 1.0f;
+        player->super.maxuse_time = 5.0f;
         break;
     default:
         player->super.active = false;
@@ -89,7 +94,7 @@ void draw_player(Player *player, Texture2D sheet)
 #define gamepadr_axis(a) (GetGamepadAxisMovement(1, (a)))
 #define gamepadr_btnpressed(b) (IsGamepadButtonPressed(1, (b)))
 
-static void super(Player *player)
+static void super(Player *player, Game *game)
 {
     if (!player->super.active || !player->super.charged || player->super.being_used)
         return;
@@ -103,10 +108,13 @@ static void super(Player *player)
         ascir(player->p).radius = PLAYER_GAME_SIZE * 2.0f;
         player->p.mass *= 6.0f;
         break;
+    case PLAYER_MATRIX:
+        game->ball.time_scale = 0.25f;
+        break;
     }
 }
 
-static void desuper(Player *player)
+static void desuper(Player *player, Game *game)
 {
     player->super.being_used = false;
 
@@ -114,6 +122,9 @@ static void desuper(Player *player)
     case PLAYER_BALD:
         ascir(player->p).radius = PLAYER_GAME_SIZE;
         player->p.mass /= 6.0f;
+        break;
+    case PLAYER_MATRIX:
+        game->ball.time_scale = 1.0f;
         break;
     }
 }
@@ -157,10 +168,10 @@ void update_player(Player *player, void *gameptr, float dt)
     }
 
     if (ires.super_btn)
-        super(player);
+        super(player, game);
 
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
-    player->hbradius = clamp(HBRADIUS * fabs(game->ball.p.velo.x) / 200, HBRADIUS, 100);
+    player->hbradius = clamp(HBRADIUS * fabs(game->ball.p.velo.x) / 700, HBRADIUS, 100);
     if (check_cir_coll(ascirp(&game->ball.p), (Circle) { hb_pos, player->hbradius }, NULL, NULL)) {
         if (ires.strhit_btn) {
             hit_straight(&game->ball, player->side);
@@ -182,7 +193,7 @@ void update_player(Player *player, void *gameptr, float dt)
 
     if (player->super.being_used) {
         if ((player->super.use_time -= dt) <= 0)
-            desuper(player);
+            desuper(player, game);
     } else if ((player->super.chr_time += dt) >= player->super.maxchr_time) {
         player->super.charged = true;
         player->super.chr_time = 0;
