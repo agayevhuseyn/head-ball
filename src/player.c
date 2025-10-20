@@ -6,7 +6,7 @@
 #include "game.h"
 
 
-static const float hbradius = 60;
+#define HBRADIUS 60
 
 void init_player(Player *player, int index, int side, Vector2 pos,
                  float radius, float speed, float jmp_force)
@@ -77,7 +77,7 @@ void draw_player(Player *player, Texture2D sheet)
         radius * 2
     };
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
-    DrawCircleV(hb_pos, hbradius, color);
+    DrawCircleV(hb_pos, player->hbradius, color);
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
 }
 
@@ -160,7 +160,8 @@ void update_player(Player *player, void *gameptr, float dt)
         super(player);
 
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
-    if (check_cir_coll(ascirp(&game->ball.p), (Circle) { hb_pos, hbradius }, NULL, NULL)) {
+    player->hbradius = clamp(HBRADIUS * fabs(game->ball.p.velo.x) / 200, HBRADIUS, 100);
+    if (check_cir_coll(ascirp(&game->ball.p), (Circle) { hb_pos, player->hbradius }, NULL, NULL)) {
         if (ires.strhit_btn) {
             hit_straight(&game->ball, player->side);
         }

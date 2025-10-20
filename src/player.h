@@ -30,6 +30,7 @@ typedef struct {
     int side;
     int index;
     Vector2 hboffset;
+    float hbradius;
     /* super */
     struct {
         int active;
