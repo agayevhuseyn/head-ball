@@ -4,6 +4,7 @@
 #include "player.h"
 #include <raylib.h>
 #include <raymath.h>
+#include "font.h"
 
 
 /* GAME */
@@ -93,6 +94,8 @@ static void reset_game(Game *game)
 
     ascir(ball->p).pos = BALL_START_POS;
     ball->p.velo = vec2zero;
+    ball->rot = 0;
+    ball->hitleft_trail = 0;
 
     ascir(a->p).pos = PLAYER_LEFT_START_POS;
     a->p.velo = vec2zero;
@@ -196,10 +199,10 @@ static void draw_menu(Game *game)
 static void draw_gameui(Game *game)
 {
     if (show_fps)
-        DrawText(TextFormat("%i", GetFPS()), 8, 8, 32, BLACK);
+        draw_text(TextFormat("%i", GetFPS()), vec2(8, 8), 32, BLACK);
 
-    DrawText(TextFormat("%i", left_score), 64, 32, 64, BLACK);
-    DrawText(TextFormat("%i", right_score), WIDTH - 8 - 64 - 32, 32, 64, BLACK);
+    draw_text(TextFormat("%i", left_score), vec2(64, 32), 64, BLACK);
+    draw_text(TextFormat("%i", right_score), vec2(WIDTH - 8 - 64 - 32, 32), 64, BLACK);
 
     /* bars */
     Player *a = &game->players[0];
@@ -252,6 +255,7 @@ void init_game(Game *game)
     /* game */
     game->state = GAME_STATE_MENU;
     /* textures */
+    load_font("assets/joystixmono.otf");
     bg_tex = LoadTexture("assets/bg.png");
     front_tex = LoadTexture("assets/front.png");
     player_tex = LoadTexture("assets/player.png");
@@ -335,8 +339,8 @@ void update_game(Game *game, float dt)
     update_ball(&game->ball, dt);
 
     handle_coll(&a->p, &b->p, dt);
-    handle_coll(&ball->p, &a->p, dt);
-    handle_coll(&ball->p, &b->p, dt);
+    ball->hitleft_trail -= handle_coll(&ball->p, &a->p, dt);
+    ball->hitleft_trail -= handle_coll(&ball->p, &b->p, dt);
 
     if (ball_push) {
         ball->p.velo.y = -80.0f * (sqrtf(a->p.mass) + sqrtf(b->p.mass));
@@ -345,12 +349,12 @@ void update_game(Game *game, float dt)
 
     a->p.on_ground = b->p.on_ground = 0;
     for (int i = 0; i < 4; i++) {
-        handle_coll(&ball->p, &game->borders[i], dt);
+        ball->hitleft_trail -= handle_coll(&ball->p, &game->borders[i], dt);
         handle_coll(&a->p, &game->borders[i], dt);
         handle_coll(&b->p, &game->borders[i], dt);
     }
     for (int i = 0; i < 2; i++) {
-        handle_coll(&ball->p, &game->bars[i], dt);
+        ball->hitleft_trail -= handle_coll(&ball->p, &game->bars[i], dt);
         handle_coll(&a->p, &game->bars[i], dt);
         handle_coll(&b->p, &game->bars[i], dt);
     }

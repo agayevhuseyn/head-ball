@@ -10,6 +10,7 @@ typedef struct {
     float rot;
     /* supers from players */
     float time_scale;
+    int hitleft_trail;
 } Ball;
 
 void init_ball(Ball *ball, Vector2 pos, float radius);

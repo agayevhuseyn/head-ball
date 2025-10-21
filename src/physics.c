@@ -1,5 +1,4 @@
 #include "physics.h"
-#include <raymath.h>
 #include "macros.h"
 #include <assert.h>
 
@@ -84,7 +83,7 @@ static void resolve_cir_cir(PObject *a, PObject *b, Vector2 normal, float depth)
 
         if (velo_along_normal > 0) return;
 
-        float e = 0.8f; // restitution (bounciness)
+        float e = 0.6f; // restitution (bounciness)
         float j = -(1 + e) * velo_along_normal / (1/a->mass + 1/b->mass);
 
         Vector2 impulse = vec2(normal.x*j, normal.y*j);
@@ -147,7 +146,7 @@ static void resolve_cir_rec(PObject *cobj, PObject *robj, Vector2 normal, float 
     cobj->velo.y -= vel_along_tangent * mu * tangent.y;
 }
 
-void handle_coll(PObject *a, PObject *b, float dt)
+int handle_coll(PObject *a, PObject *b, float dt)
 {
     Vector2 normal;
     float depth;
@@ -165,6 +164,7 @@ void handle_coll(PObject *a, PObject *b, float dt)
         assert(0 && "Circle must be first argument");
     }
 
-    if (!collided) return;
     assert(!a->isstatic && "First argument must be dynamic");
+
+    return collided;
 }

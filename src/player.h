@@ -41,11 +41,11 @@ typedef struct {
         float use_time;
         float maxuse_time;
     } super;
-    /* side effect of opponent */
+    /* effects of supers */
+    int powershot;
     int revctrl;
 } Player;
 
-Texture2D get_player_tex();
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);
 void draw_player(Player *player, Texture2D sheet);
 void update_player(Player *player, void *gameptr, float dt);

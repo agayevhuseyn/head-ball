@@ -7,6 +7,7 @@
 
 
 #define HBRADIUS 60
+#define POWERSHOT_BOUNCE 3
 
 void init_player(Player *player, int index, int side, Vector2 pos,
                  float radius, float speed, float jmp_force)
@@ -27,6 +28,7 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     player->side = side;
     player->index = index;
     player->revctrl = false;
+    player->powershot = false;
 
     /* ball hitbox */
     player->hboffset =
@@ -40,6 +42,11 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     player->super.chr_time = 0.0f;
     player->super.use_time = 0.0f;
     switch (index) {
+    case PLAYER_BLACK:
+        player->super.active = true;
+        player->super.maxchr_time = 1.0f;
+        player->super.maxuse_time = 0.0f;
+        break;
     case PLAYER_BALD:
         player->super.active = true;
         player->super.maxchr_time = 5.0f;
@@ -115,6 +122,9 @@ static void super(Player *player, Game *game)
     player->super.chr_time = 0;
 
     switch (player->index) {
+    case PLAYER_BLACK:
+        player->powershot = true;
+        break;
     case PLAYER_BALD:
         ascir(player->p).radius = PLAYER_GAME_SIZE * 2.0f;
         player->p.mass *= 6.0f;
@@ -169,26 +179,42 @@ static void desuper(Player *player, Game *game)
     }
 }
 
-static void hit_straight(Ball *b, int side)
+static void hit_straight(Ball *b, float velo, int *powershot, int side)
 {
-    static const float velox = 2000;
+    if (*powershot) {
+        velo *= 2;
+        *powershot = false;
+        b->hitleft_trail = POWERSHOT_BOUNCE; 
+    }
+    float speed = vec2len(b->p.velo);
+    if (speed > velo)
+        velo = speed;
     if (side == PLAYER_SIDE_LEFT) {
-        b->p.velo.x = velox;
+        b->p.velo.x = velo;
     } else {
-        b->p.velo.x = -velox;
+        b->p.velo.x = -velo;
     }
     b->p.velo.y = 0;
 }
 
-static void hit_diagonal(Ball *b, int side)
+static void hit_diagonal(Ball *b, float velo, int *powershot, int side)
 {
-    static const float velo = 2000;
-    static const float deg = 30 * DEG2RAD;
-    b->p.velo.y = -velo * sinf(deg);
+    float deg = 37.5f;
+    if (*powershot) {
+        velo *= 2;
+        deg = 22.5f;
+        *powershot = false;
+        b->hitleft_trail = POWERSHOT_BOUNCE; 
+    }
+    float deg_in_rad = deg * DEG2RAD;
+    float speed = vec2len(b->p.velo);
+    if (speed > velo)
+        velo = speed;
+    b->p.velo.y = -velo * sinf(deg_in_rad);
     if (side == PLAYER_SIDE_LEFT) {
-        b->p.velo.x = velo * cosf(deg);
+        b->p.velo.x = velo * cosf(deg_in_rad);
     } else {
-        b->p.velo.x = -velo * cosf(deg);
+        b->p.velo.x = -velo * cosf(deg_in_rad);
     }
 }
 
@@ -210,11 +236,12 @@ void update_player(Player *player, void *gameptr, float dt)
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
     player->hbradius = clamp(HBRADIUS * fabs(game->ball.p.velo.x) / 700, HBRADIUS, 100);
     if (check_cir_coll(ascirp(&game->ball.p), (Circle) { hb_pos, player->hbradius }, NULL, NULL)) {
+        static const float velo = 1500;
         if (ires.strhit_btn) {
-            hit_straight(&game->ball, player->side);
+            hit_straight(&game->ball, velo, &player->powershot, player->side);
         }
         if (ires.uphit_btn) {
-            hit_diagonal(&game->ball, player->side);
+            hit_diagonal(&game->ball, velo, &player->powershot, player->side);
         }
     }
 

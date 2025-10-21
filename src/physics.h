@@ -3,6 +3,7 @@
 
 
 #include <raylib.h>
+#include <raymath.h>
 
 
 typedef struct {
@@ -47,11 +48,12 @@ typedef struct {
 #define iscirp(p) ((p)->type == POBJECT_CIR)
 #define isrecp(p) ((p)->type == POBJECT_REC)
 
+#define vec2len(v) (sqrtf((v).x * (v).x + (v).y * (v).y))
 
 Vector2 vec2unit(Vector2 v);
 int check_cir_coll(Circle a, Circle b, Vector2 *normal, float *depth);
 int check_cirrec_coll(Circle c, Rectangle r, Vector2 *normal, float *depth);
-void handle_coll(PObject *a, PObject *b, float dt);
+int handle_coll(PObject *a, PObject *b, float dt);
 
 
 #endif /* PHYSICS_H */

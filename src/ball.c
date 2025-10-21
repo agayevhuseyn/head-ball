@@ -4,7 +4,11 @@
 #include "macros.h"
 #include <raymath.h>
 #include "game.h"
+#include "particle.h"
 
+
+#define PART_SIZE 256
+static Particle ps[PART_SIZE] = {0};
 
 void init_ball(Ball *ball, Vector2 pos, float radius)
 {
@@ -27,6 +31,7 @@ void init_ball(Ball *ball, Vector2 pos, float radius)
 void draw_ball(Ball *ball, Texture2D tex)
 {
     //DrawCircleV(ascir(ball->p).pos, ascir(ball->p).radius * 1.1f, BLACK);
+    draw_particles(ps, PART_SIZE);
     Rectangle src  = { 0, 0, tex.width, tex.height };
     Rectangle dest = { ascir(ball->p).pos.x, ascir(ball->p).pos.y, ascir(ball->p).radius * 2, ascir(ball->p).radius * 2 };
     DrawTexturePro(tex, src, dest, vec2(ascir(ball->p).radius, ascir(ball->p).radius), ball->rot, WHITE);
@@ -38,7 +43,24 @@ void update_ball(Ball *ball, float dt)
     ascir(ball->p).pos.x += ball->p.velo.x * dt * ball->time_scale;
     ascir(ball->p).pos.y += ball->p.velo.y * dt * ball->time_scale;
 
-    ball->rot += (ball->p.velo.x / ascir(ball->p).radius) * RAD2DEG * dt * ball->time_scale;
+    ball->rot += (ball->p.velo.x / ascir(ball->p).radius) * RAD2DEG * dt * ball->time_scale; 
+
+    if (ball->hitleft_trail > 0) {
+        emit_particles(
+            ps,                 /* Particle *ps,  */
+            PART_SIZE,          /* int size,  */
+            2,                  /* int needed,  */
+            ascir(ball->p).pos, /* Vector2 pos,  */
+            vec2zero,         /* Vector2 dir,  */
+            100,                /* float velo,  */
+            0.3f,               /* float life,  */
+            ORANGE,             /* Color c,  */
+            ascir(ball->p).radius   /* float psize  */
+        );
+    }
+
+    update_particles(ps, PART_SIZE, dt);
+    
     if (IsMouseButtonDown(0)) {
         ascir(ball->p).pos = GetMousePosition();
     }
