@@ -5,6 +5,8 @@
 #include <raylib.h>
 #include <raymath.h>
 #include "font.h"
+#include <time.h>
+#include <stdlib.h>
 
 
 /* GAME */
@@ -252,6 +254,7 @@ static void draw_gameui(Game *game)
 
 void init_game(Game *game)
 {
+    srand(time(NULL));
     /* game */
     game->state = GAME_STATE_MENU;
     /* textures */

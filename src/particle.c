@@ -1,8 +1,10 @@
 #include "particle.h"
 #include "macros.h"
+#include <stdlib.h>
+#include "physics.h"
 
 
-void emit_particles(Particle *ps, int size, int needed,
+void emit_particles(Particle *ps, int size, int type, int needed,
                     Vector2 pos, Vector2 dir, float velo,
                     float life, Color c, float psize)
 {
@@ -10,8 +12,9 @@ void emit_particles(Particle *ps, int size, int needed,
         if (ps[i].active)
             continue;
 
+        ps[i].type = type;
         ps[i].pos  = pos;
-        ps[i].dir  = dir;
+        ps[i].dir  = vec2unit(dir);
         ps[i].velo = velo;
         ps[i].life = ps[i].max_life = life;
         ps[i].c = c;
@@ -20,6 +23,25 @@ void emit_particles(Particle *ps, int size, int needed,
 
         needed--;
     }
+}
+
+void emit_particles_rand(Particle *ps, int size, int type, int needed,
+                         Vector2 pos, Vector2 dir, float velo,
+                         float life, Color c, float psize)
+{
+    for (int i = 0; i < needed; i++)
+        emit_particles(
+            ps,                 /* Particle *ps,  */
+            size,          /* int size,  */
+            type,    /* int type,  */
+            1,                  /* int needed,  */
+            pos, /* Vector2 pos,  */
+            vec2((float)rand() / RAND_MAX, (float)rand() / RAND_MAX),         /* Vector2 dir,  */
+            rand() % 150,                /* float velo,  */
+            ((float)rand() / RAND_MAX) * 2.0f,               /* float life,  */
+            color(c.r + rand() % 15, c.g + rand() % 15, c.b + rand() % 15 , c.a - rand() % 50),             /* Color c,  */
+            psize /* float psize  */
+        );
 }
 
 void update_particles(Particle *ps, int size, float dt)
@@ -42,16 +64,35 @@ void draw_particles(Particle *ps, int size)
         if (!ps[i].active)
             continue;
 
-        DrawCircleV(
-            ps[i].pos,
-            //vec2(ps[i].size, ps[i].size),
-            ps[i].size * (ps[i].life / ps[i].max_life),
-            color(
-                ps[i].c.r,
-                ps[i].c.g,
-                ps[i].c.b,
-                ps[i].c.a * (ps[i].life / ps[i].max_life)
-            )
-        );
+        switch (ps[i].type) {
+        case PARTICLE_CIRCLE:
+            DrawCircleV(
+                ps[i].pos,
+                //vec2(ps[i].size, ps[i].size),
+                ps[i].size * (ps[i].life / ps[i].max_life),
+                color(
+                    ps[i].c.r,
+                    ps[i].c.g,
+                    ps[i].c.b,
+                    ps[i].c.a * (ps[i].life / ps[i].max_life)
+                )
+            );
+            break;
+        case PARTICLE_SQUARE:
+            DrawRectanglePro(
+                recv(ps[i].pos,
+                //vec2(ps[i].size, ps[i].size),
+                vec2(ps[i].size, ps[i].size)),
+                vec2(ps[i].size / 2, ps[i].size / 2),
+                0,
+                color(
+                    ps[i].c.r,
+                    ps[i].c.g,
+                    ps[i].c.b,
+                    ps[i].c.a * (ps[i].life / ps[i].max_life)
+                )
+            );
+            break;
+        }
     }
 }
