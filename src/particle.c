@@ -29,19 +29,22 @@ void emit_particles_rand(Particle *ps, int size, int type, int needed,
                          Vector2 pos, Vector2 dir, float velo,
                          float life, Color c, float psize)
 {
-    for (int i = 0; i < needed; i++)
+    for (int i = 0; i < needed; i++) {
+        float angle = ((float)rand() / RAND_MAX) * 2.0f * PI;
+        Vector2 rand_dir = vec2(cosf(angle), sinf(angle));
         emit_particles(
             ps,                 /* Particle *ps,  */
             size,          /* int size,  */
             type,    /* int type,  */
             1,                  /* int needed,  */
             pos, /* Vector2 pos,  */
-            vec2((float)rand() / RAND_MAX, (float)rand() / RAND_MAX),         /* Vector2 dir,  */
-            rand() % 150,                /* float velo,  */
-            ((float)rand() / RAND_MAX) * 2.0f,               /* float life,  */
+            rand_dir,         /* Vector2 dir,  */
+            rand() % (int)velo,                /* float velo,  */
+            ((float)rand() / RAND_MAX) * life,               /* float life,  */
             color(c.r + rand() % 15, c.g + rand() % 15, c.b + rand() % 15 , c.a - rand() % 50),             /* Color c,  */
             psize /* float psize  */
         );
+    }
 }
 
 void update_particles(Particle *ps, int size, float dt)

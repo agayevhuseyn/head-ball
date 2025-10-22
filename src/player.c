@@ -4,10 +4,14 @@
 #include <math.h>
 #include <raymath.h>
 #include "game.h"
+#include "particle.h"
 
 
 #define HBRADIUS 60
 #define POWERSHOT_BOUNCE 3
+
+#define PART_SIZE 128
+static Particle ps[2][PART_SIZE] = {0};
 
 void init_player(Player *player, int index, int side, Vector2 pos,
                  float radius, float speed, float jmp_force)
@@ -44,7 +48,7 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     switch (index) {
     case PLAYER_BLACK:
         player->super.active = true;
-        player->super.maxchr_time = 1.0f;
+        player->super.maxchr_time = 4.0f;
         player->super.maxuse_time = 0.0f;
         break;
     case PLAYER_BALD:
@@ -64,7 +68,7 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         break;
     case PLAYER_ALIEN:
         player->super.active = true;
-        player->super.maxchr_time = 1;
+        player->super.maxchr_time = 7.5f;
         player->super.maxuse_time = 0.0f;
         break;
     default:
@@ -101,6 +105,7 @@ void draw_player(Player *player, Texture2D sheet)
     };
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
     //DrawCircleV(hb_pos, player->hbradius, color);
+    draw_particles(ps[player->side], PART_SIZE);
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
 }
 
@@ -121,6 +126,11 @@ static void super(Player *player, Game *game)
     player->super.being_used = true;
     player->super.chr_time = 0;
 
+    Player *opponent = &game->players[
+        player->side == PLAYER_SIDE_LEFT
+        ? PLAYER_SIDE_RIGHT
+        : PLAYER_SIDE_LEFT
+    ];
     switch (player->index) {
     case PLAYER_BLACK:
         player->powershot = true;
@@ -133,24 +143,38 @@ static void super(Player *player, Game *game)
         game->ball.time_scale = 0.25f;
         break;
     case PLAYER_HACKER:
-        game->players[
-            player->side == PLAYER_SIDE_LEFT
-            ? PLAYER_SIDE_RIGHT
-            : PLAYER_SIDE_LEFT
-        ]
-        .revctrl = true;
+        opponent->revctrl = true;
         break;
     case PLAYER_ALIEN: {
-        Vector2 *op_pos_p = 
-            &ascir(game->players[
-                player->side == PLAYER_SIDE_LEFT
-                ? PLAYER_SIDE_RIGHT
-                : PLAYER_SIDE_LEFT
-            ].p)
-            .pos;
+        Vector2 *op_pos_p = &ascir(opponent->p).pos;
         Vector2 op_pos = *op_pos_p;
         *op_pos_p = ascir(player->p).pos;
         ascir(player->p).pos = op_pos;
+        static const int needed_part = PART_SIZE / 2;
+        emit_particles_rand(
+            ps[player->side], /* Particle *ps,  */
+            PART_SIZE, /* int size,  */
+            PARTICLE_CIRCLE, /* int type,  */
+            needed_part, /* int needed,  */
+            ascir(player->p).pos, /* Vector2 pos,  */
+            vec2zero, /* Vector2 dir,  */
+            300, /* float velo,  */
+            1.0f, /* float life,  */
+            VIOLET, /* Color c,  */
+            ascir(player->p).radius /* float psize  */
+        );
+        emit_particles_rand(
+            ps[opponent->side], /* Particle *ps,  */
+            PART_SIZE, /* int size,  */
+            PARTICLE_CIRCLE, /* int type,  */
+            needed_part, /* int needed,  */
+            ascir(opponent->p).pos, /* Vector2 pos,  */
+            vec2zero, /* Vector2 dir,  */
+            300, /* float velo,  */
+            1.0f, /* float life,  */
+            VIOLET, /* Color c,  */
+            ascir(player->p).radius /* float psize  */
+        );
         break;
     }
     }
@@ -250,6 +274,8 @@ void update_player(Player *player, void *gameptr, float dt)
 
     player->p.velo.y += GRAVITY * dt;
     ascir(player->p).pos.y += player->p.velo.y * dt;
+
+    update_particles(ps[player->side], PART_SIZE, dt);
 
     /* super */
     if (!player->super.active || player->super.charged)

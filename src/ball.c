@@ -64,12 +64,12 @@ void update_ball(Ball *ball, float dt)
         emit_particles_rand(
             ps,                 /* Particle *ps,  */
             PART_SIZE,          /* int size,  */
-            PARTICLE_SQUARE,    /* int type,  */
-            4,                  /* int needed,  */
+            PARTICLE_CIRCLE,    /* int type,  */
+            1,                  /* int needed,  */
             ascir(ball->p).pos, /* Vector2 pos,  */
             vec2zero,         /* Vector2 dir,  */
-            100,                /* float velo,  */
-            0.3f,               /* float life,  */
+            150,                /* float velo,  */
+            0.6f,               /* float life,  */
             color(63, 63, 116, 255),             /* Color c,  */
             ascir(ball->p).radius /* float psize  */
         );
