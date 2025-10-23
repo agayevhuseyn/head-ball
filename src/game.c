@@ -34,9 +34,11 @@
 static PlayerControl control_left = { /* left */
     .gamepad_id = PLAYER_SIDE_LEFT,
     .gamepad = {
-        .super_btn  = GAMEPAD_BUTTON_RIGHT_FACE_UP,
+        .super_btn  = GAMEPAD_BUTTON_RIGHT_TRIGGER_2,
         .strhit_btn = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
-        .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT
+        .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_LEFT,
+        .forw_btn   = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
+        .back_btn   = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
     },
     .keyboard = {
         .left_btn   = KEY_A,
@@ -52,9 +54,11 @@ static PlayerControl control_left = { /* left */
 static PlayerControl control_right = { /* right */
     .gamepad_id = PLAYER_SIDE_RIGHT,
     .gamepad = {
-        .super_btn  = GAMEPAD_BUTTON_RIGHT_FACE_UP,
+        .super_btn  = GAMEPAD_BUTTON_RIGHT_TRIGGER_2,
         .strhit_btn = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
-        .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT
+        .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_LEFT,
+        .forw_btn   = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
+        .back_btn   = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
     },
     .keyboard = {
         .left_btn   = KEY_LEFT,
@@ -190,7 +194,7 @@ static void draw_menu(Game *game)
         }
     }
 
-    if (IsKeyPressed(KEY_ENTER)) {
+    if (lres.forw_btn || rres.forw_btn) {
         if (left_pick != -1 && right_pick != -1) {
             game->state = GAME_STATE_RUN;
             start_game(game, left_pick, right_pick);

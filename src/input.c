@@ -65,6 +65,12 @@ PlayerInputResult get_playerinputresult(PlayerControl *pc)
         if (IsGamepadButtonPressed(id, pc->gamepad.uphit_btn)) {
             res.uphit_btn = true;
         }
+        if (IsGamepadButtonPressed(id, pc->gamepad.forw_btn)) {
+            res.forw_btn = true;
+        }
+        if (IsGamepadButtonPressed(id, pc->gamepad.back_btn)) {
+            res.back_btn = true;
+        }
     } else {
         res.iaxis.x = res.faxis.x = IsKeyDown(pc->keyboard.right_btn) - IsKeyDown(pc->keyboard.left_btn);
         res.iaxis.y = res.faxis.y = IsKeyDown(pc->keyboard.down_btn)  - IsKeyDown(pc->keyboard.up_btn);
@@ -73,7 +79,7 @@ PlayerInputResult get_playerinputresult(PlayerControl *pc)
         res.press_axis.y = IsKeyPressed(pc->keyboard.down_btn)  - IsKeyPressed(pc->keyboard.up_btn);
 
         if (IsKeyPressed(pc->keyboard.super_btn)) {
-            res.super_btn = true;
+            res.forw_btn = res.super_btn = true;
         }
         if (IsKeyPressed(pc->keyboard.strhit_btn)) {
             res.strhit_btn = true;

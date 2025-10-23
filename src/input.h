@@ -20,6 +20,8 @@ typedef struct {
         int super_btn;
         int strhit_btn;
         int uphit_btn;
+        int forw_btn;
+        int back_btn;
     } gamepad;
 } PlayerControl;
 
@@ -37,6 +39,8 @@ typedef struct {
     int super_btn;
     int strhit_btn;
     int uphit_btn;
+    int forw_btn;
+    int back_btn;
 } PlayerInputResult;
 
 
