@@ -9,6 +9,7 @@
 #define clamp(val, min, max) (val < min ? min : val > max ? max : val)
 #define vec2zero vec2(0, 0)
 #define vec2len(v) (sqrtf((v).x * (v).x + (v).y * (v).y))
+#define lerp(a, b, dt) ((a) + ((b) - (a)) * (dt))
 
 
 #endif /* MACROS_H */

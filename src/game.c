@@ -85,6 +85,15 @@ static void draw_recs(PObject *ps, int size)
     }
 }
 
+static void cam_posclamp(Camera2D *cam, Vector2 pos)
+{
+    float halfx = cam->offset.x / cam->zoom;
+    float halfy = cam->offset.y / cam->zoom;
+
+    cam->target.x = clamp(pos.x, halfx, WIDTH  - halfx);
+    cam->target.y = clamp(pos.y, halfy, HEIGHT - halfy);
+}
+
 static void start_game(Game *game, int left, int right)
 {
     init_ball(&game->ball, BALL_START_POS, 32);
@@ -259,8 +268,16 @@ static void draw_gameui(Game *game)
 void init_game(Game *game)
 {
     srand(time(NULL));
+    *game = (Game) {0};
     /* game */
     game->state = GAME_STATE_MENU;
+    /* camera */
+    game->cam = (Camera2D) {
+        .offset = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
+        .rotation = 0,
+        .target = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
+        .zoom = 1.0f,
+    };
     /* textures */
     load_font("assets/joystixmono.otf");
     bg_tex = LoadTexture("assets/bg.png");
@@ -284,18 +301,20 @@ void init_game(Game *game)
 
 void draw_game(Game *game)
 {
-    DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
-    if (game_onmenu(game)) {
+    BeginMode2D(game->cam);
+        DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
+        if (game_onmenu(game)) {
+            DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
+            draw_menu(game);
+            return;
+        }
+        //draw_recs(game->bars, 2);
+        draw_player(&game->players[0], player_tex);
+        draw_player(&game->players[1], player_tex);
+        draw_ball(&game->ball, ball_tex);
+        //draw_recs(game->borders, 4);
         DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
-        draw_menu(game);
-        return;
-    }
-    //draw_recs(game->bars, 2);
-    draw_player(&game->players[0], player_tex);
-    draw_player(&game->players[1], player_tex);
-    draw_ball(&game->ball, ball_tex);
-    //draw_recs(game->borders, 4);
-    DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
+    EndMode2D();
 
     draw_gameui(game);
 }
@@ -318,18 +337,51 @@ void update_game(Game *game, float dt)
     Player *b  = &game->players[1];
     Ball *ball = &game->ball;
 
+    int scored = false;
     if (
+        !game->cam_following_ball &&
         ascir(ball->p).pos.x + ascir(ball->p).radius < asrec(game->bars[0]).x + asrec(game->bars[0]).width &&
         ascir(ball->p).pos.y - ascir(ball->p).radius > asrec(game->bars[0]).y
     ) {
         right_score++;
-        reset_game(game);
+        scored = true;
     } else if (
+        !game->cam_following_ball &&
         ascir(ball->p).pos.x - ascir(ball->p).radius > asrec(game->bars[1]).x &&
         ascir(ball->p).pos.y - ascir(ball->p).radius > asrec(game->bars[1]).y
     ) {
         left_score++;
-        reset_game(game);
+        scored = true;
+    }
+
+    if (scored) {
+        game->cam_following_ball = true;
+    }
+
+    if (game->cam_following_ball) {
+        Vector2 ball_lerped_pos;
+        float target_zoom = 3.0f;
+        if ((game->wait_time += dt) > GAME_ROUND_MAX_WAIT_TIME) {
+            game->cam_following_ball = false;
+            game->wait_time = 0;
+            game->cam.zoom = 1.0f;
+            game->cam.target = vec2(WIDTH / 2.0f, HEIGHT / 2.0f);
+            reset_game(game);
+        }
+        ball_lerped_pos.x = lerp(game->cam.target.x, ascir(game->ball.p).pos.x, dt * 5);
+        ball_lerped_pos.y = lerp(game->cam.target.y, ascir(game->ball.p).pos.y, dt * 5);
+        game->cam.zoom = lerp(game->cam.zoom, target_zoom, dt * 2.5f);
+        game->cam.zoom = clamp(game->cam.zoom, 1.0f, 3.0f);
+        cam_posclamp(&game->cam, ball_lerped_pos);
+    }
+    if (game->resetting_ball) {
+        ascir(ball->p).pos.x = lerp(ascir(ball->p).pos.x, BALL_START_POS.x, dt * 5);
+        ascir(ball->p).pos.y = lerp(ascir(ball->p).pos.y, BALL_START_POS.y, dt * 5);
+        ball->p.velo = vec2zero;
+        if ((game->wait_time += dt) > GAME_ROUND_MAX_WAIT_TIME) {
+            game->resetting_ball = false;
+            game->wait_time = 0;
+        }
     }
 
     if (IsKeyPressed(KEY_F5)) {
@@ -360,8 +412,21 @@ void update_game(Game *game, float dt)
         handle_coll(&a->p, &game->borders[i], dt);
         handle_coll(&b->p, &game->borders[i], dt);
     }
+
+    int hit_bar = false;
     for (int i = 0; i < 2; i++) {
-        ball->hitleft_trail -= handle_coll(&ball->p, &game->bars[i], dt);
+        if (!hit_bar) {
+            hit_bar = handle_coll(&ball->p, &game->bars[i], dt);
+        }
+        ball->hitleft_trail -= hit_bar;
+        if (hit_bar && fabs(ball->p.velo.x) < 4.0f) {
+            ball->stop_time += dt;
+        } else {
+            ball->stop_time = 0;
+        }
+        if (ball->stop_time >= BALL_MAX_STOP_TIME) {
+            game->resetting_ball = true;
+        }
         handle_coll(&a->p, &game->bars[i], dt);
         handle_coll(&b->p, &game->bars[i], dt);
     }

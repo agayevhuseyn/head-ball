@@ -78,6 +78,8 @@ void update_ball(Ball *ball, float dt)
     update_particles(ps, PART_SIZE, dt);
     
     if (IsMouseButtonDown(0)) {
-        ascir(ball->p).pos = GetMousePosition();
+        ascir(ball->p).pos.x = lerp(ascir(ball->p).pos.x, GetMouseX(), dt * 5);
+        ascir(ball->p).pos.y = lerp(ascir(ball->p).pos.y, GetMouseY(), dt * 5);
+        ball->p.velo = vec2zero;
     }
 }

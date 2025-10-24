@@ -5,12 +5,16 @@
 #include "player.h"
 #include "physics.h"
 
+#define BALL_MAX_STOP_TIME 5.0f
+
 typedef struct {
     PObject p;
     float rot;
     /* supers from players */
     float time_scale;
     int hitleft_trail;
+    /* ball stop */
+    float stop_time;
 } Ball;
 
 void init_ball(Ball *ball, Vector2 pos, float radius);
