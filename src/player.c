@@ -117,8 +117,13 @@ void draw_player(Player *player, Texture2D sheet)
 #define gamepadr_axis(a) (GetGamepadAxisMovement(1, (a)))
 #define gamepadr_btnpressed(b) (IsGamepadButtonPressed(1, (b)))
 
+static void desuper(Player *player, Game *game);
+
 static void super(Player *player, Game *game)
 {
+    if (player->index == PLAYER_MATRIX && player->super.being_used) {
+        desuper(player, game); 
+    }
     if (!player->super.active || !player->super.charged || player->super.being_used)
         return;
 
