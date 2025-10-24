@@ -109,14 +109,6 @@ void draw_player(Player *player, Texture2D sheet)
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
 }
 
-#define gamepadl_exist() (IsGamepadAvailable(0))
-#define gamepadl_axis(a) (GetGamepadAxisMovement(0, (a)))
-#define gamepadl_btnpressed(b) (IsGamepadButtonPressed(0, (b)))
-
-#define gamepadr_exist() (IsGamepadAvailable(1))
-#define gamepadr_axis(a) (GetGamepadAxisMovement(1, (a)))
-#define gamepadr_btnpressed(b) (IsGamepadButtonPressed(1, (b)))
-
 static void desuper(Player *player, Game *game);
 
 static void super(Player *player, Game *game)
