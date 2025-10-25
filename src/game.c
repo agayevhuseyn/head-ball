@@ -418,16 +418,17 @@ void update_game(Game *game, float dt)
         if (!hit_bar) {
             hit_bar = handle_coll(&ball->p, &game->bars[i], dt);
         }
-        ball->hitleft_trail -= hit_bar;
-        if (hit_bar && fabs(ball->p.velo.x) < 4.0f) {
-            ball->stop_time += dt;
-        } else {
-            ball->stop_time = 0;
-        }
-        if (ball->stop_time >= BALL_MAX_STOP_TIME) {
-            game->resetting_ball = true;
-        }
         handle_coll(&a->p, &game->bars[i], dt);
         handle_coll(&b->p, &game->bars[i], dt);
+    }
+
+    if (hit_bar && fabs(ball->p.velo.x) < 4.0f) {
+        ball->stop_time += dt;
+        ball->hitleft_trail -= hit_bar;
+    } else {
+        ball->stop_time = 0;
+    }
+    if (ball->stop_time >= BALL_MAX_STOP_TIME) {
+        game->resetting_ball = true;
     }
 }
