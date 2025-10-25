@@ -75,6 +75,9 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         player->super.active = false;
         break;
     }
+#if DEBUG
+    player->super.maxchr_time = 0.0f;
+#endif
 }
 
 void draw_player(Player *player, Texture2D sheet)
@@ -141,6 +144,18 @@ static void super(Player *player, Game *game)
         break;
     case PLAYER_HACKER:
         opponent->revctrl = true;
+        emit_particles_rand(
+            ps[opponent->side], /* Particle *ps,  */
+            PART_SIZE, /* int size,  */
+            PARTICLE_SQUARE, /* int type,  */
+            PART_SIZE / 2, /* int needed,  */
+            ascir(opponent->p).pos, /* Vector2 pos,  */
+            vec2zero, /* Vector2 dir,  */
+            200, /* float velo,  */
+            1.5f, /* float life,  */
+            color(0, 200, 0, 255), /* Color c,  */
+            ascir(opponent->p).radius /* float psize  */
+        );
         break;
     case PLAYER_ALIEN: {
         Vector2 *op_pos_p = &ascir(opponent->p).pos;
@@ -170,7 +185,7 @@ static void super(Player *player, Game *game)
             300, /* float velo,  */
             1.0f, /* float life,  */
             VIOLET, /* Color c,  */
-            ascir(player->p).radius /* float psize  */
+            ascir(opponent->p).radius /* float psize  */
         );
         break;
     }
