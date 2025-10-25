@@ -361,6 +361,11 @@ void update_game(Game *game, float dt)
     if (game->cam_following_ball) {
         Vector2 ball_lerped_pos;
         float target_zoom = 3.0f;
+        ball_lerped_pos.x = lerp(game->cam.target.x, ascir(game->ball.p).pos.x, dt * 5);
+        ball_lerped_pos.y = lerp(game->cam.target.y, ascir(game->ball.p).pos.y, dt * 5);
+        game->cam.zoom = lerp(game->cam.zoom, target_zoom, dt * 2.5f);
+        game->cam.zoom = clamp(game->cam.zoom, 1.0f, 3.0f);
+        cam_posclamp(&game->cam, ball_lerped_pos);
         if ((game->wait_time += dt) > GAME_ROUND_MAX_WAIT_TIME) {
             game->cam_following_ball = false;
             game->wait_time = 0;
@@ -368,11 +373,6 @@ void update_game(Game *game, float dt)
             game->cam.target = vec2(WIDTH / 2.0f, HEIGHT / 2.0f);
             reset_game(game);
         }
-        ball_lerped_pos.x = lerp(game->cam.target.x, ascir(game->ball.p).pos.x, dt * 5);
-        ball_lerped_pos.y = lerp(game->cam.target.y, ascir(game->ball.p).pos.y, dt * 5);
-        game->cam.zoom = lerp(game->cam.zoom, target_zoom, dt * 2.5f);
-        game->cam.zoom = clamp(game->cam.zoom, 1.0f, 3.0f);
-        cam_posclamp(&game->cam, ball_lerped_pos);
     }
     if (game->resetting_ball) {
         ascir(ball->p).pos.x = lerp(ascir(ball->p).pos.x, BALL_START_POS.x, dt * 5);
