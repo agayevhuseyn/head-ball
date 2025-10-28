@@ -289,9 +289,29 @@ void update_player(Player *player, void *gameptr, float dt)
 
     update_particles(ps[player->side], PART_SIZE, dt);
 
+    if (player->powershot) {
+        emit_particles_rand(
+            ps[player->side], /* Particle *ps,  */
+            PART_SIZE, /* int size,  */
+            PARTICLE_CIRCLE, /* int type,  */
+            1, /* int needed,  */
+            ascir(player->p).pos, /* Vector2 pos,  */
+            vec2zero, /* Vector2 dir,  */
+            500, /* float velo,  */
+            0.5f, /* float life,  */
+            color(ORANGE.r - 15, ORANGE.g, ORANGE.b, ORANGE.a), /* Color c,  */
+            ascir(player->p).radius /* float psize  */
+        );
+    }
+
+
     /* super */
-    if (!player->super.active || player->super.charged)
+    if (
+        !player->super.active || player->super.charged ||
+        player->powershot /* for powershot character */
+    ) {
         return;
+    }
 
     if (player->super.being_used) {
         if ((player->super.use_time -= dt) <= 0)
