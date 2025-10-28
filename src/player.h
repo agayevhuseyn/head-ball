@@ -42,10 +42,15 @@ typedef struct {
         float maxuse_time;
     } super;
     /* effects of supers */
+    /* black */
     int powershot;
+    /* hacker */
     int revctrl;
+    /* egg */
     int changing_size; /* 1 grow, -1 shrink, 0 none */
     float target_size;
+    /* sumo */
+    int smashing_ground;
 } Player;
 
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);

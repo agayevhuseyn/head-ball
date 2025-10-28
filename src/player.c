@@ -53,8 +53,13 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         break;
     case PLAYER_BALD:
         player->super.active = true;
-        player->super.maxchr_time = 5.0f;
-        player->super.maxuse_time = 1.6f;
+        player->super.maxchr_time = 6.0f;
+        player->super.maxuse_time = 2.0f;
+        break;
+    case PLAYER_SUMO:
+        player->super.active = true;
+        player->super.maxchr_time = 7.5f;
+        player->super.maxuse_time = 0.0f;
         break;
     case PLAYER_MATRIX:
         player->super.active = true;
@@ -68,7 +73,7 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         break;
     case PLAYER_ALIEN:
         player->super.active = true;
-        player->super.maxchr_time = 7.5f;
+        player->super.maxchr_time = 9.0f;
         player->super.maxuse_time = 0.0f;
         break;
     default:
@@ -119,6 +124,9 @@ static void super(Player *player, Game *game)
     if (player->index == PLAYER_MATRIX && player->super.being_used) {
         desuper(player, game); 
     }
+    if (player->index == PLAYER_SUMO && player->p.on_ground) {
+        return;
+    }
     if (!player->super.active || !player->super.charged || player->super.being_used)
         return;
 
@@ -139,6 +147,10 @@ static void super(Player *player, Game *game)
         player->changing_size = 1;
         player->target_size = PLAYER_GAME_SIZE * 2.0f;
         player->p.mass *= 6.0f;
+        break;
+    case PLAYER_SUMO:
+        player->smashing_ground = true;
+        player->p.velo.y = -player->jmp_force;
         break;
     case PLAYER_MATRIX:
         game->ball.time_scale = 0.25f;
@@ -289,6 +301,7 @@ void update_player(Player *player, void *gameptr, float dt)
     player->p.velo.y += GRAVITY * dt;
     ascir(player->p).pos.y += player->p.velo.y * dt;
 
+    /* EGG */
     static const float change_size_rate = 250.0f;
     if (player->changing_size > 0) {
         if ((ascir(player->p).radius += change_size_rate * dt) >= player->target_size) {
@@ -302,8 +315,40 @@ void update_player(Player *player, void *gameptr, float dt)
         }
     }
 
-    update_particles(ps[player->side], PART_SIZE, dt);
+    /* SUMO */
+    if (player->smashing_ground && player->p.on_ground) {
+        player->smashing_ground = false;
+        Player *opponent = 
+            &game->players[
+                player->side == PLAYER_SIDE_LEFT
+                ? PLAYER_SIDE_RIGHT
+                : PLAYER_SIDE_LEFT
+            ];
 
+        if (opponent->p.on_ground) {
+            opponent->p.velo.y = opponent->jmp_force;
+        }
+
+        emit_particles_rand(
+            ps[player->side], /* Particle *ps,  */
+            PART_SIZE, /* int size,  */
+            PARTICLE_CIRCLE, /* int type,  */
+            PART_SIZE / 2, /* int needed,  */
+            vec2( /* Vector2 pos,  */
+                ascir(player->p).pos.x,
+                ascir(player->p).pos.y + ascir(player->p).radius / 2
+            ),
+            vec2zero, /* Vector2 dir,  */
+            600, /* float velo,  */
+            0.7f, /* float life,  */
+            color(120, 240, 80, 255), /* Color c,  */
+            ascir(player->p).radius / 2 /* float psize  */
+        );
+    }
+
+
+    update_particles(ps[player->side], PART_SIZE, dt);
+    /* BLACK */
     if (player->powershot) {
         emit_particles_rand(
             ps[player->side], /* Particle *ps,  */
@@ -322,8 +367,9 @@ void update_player(Player *player, void *gameptr, float dt)
 
     /* super */
     if (
-        !player->super.active || player->super.charged ||
-        player->powershot /* for powershot character */
+        !player->super.active || player->super.charged  ||
+        player->powershot /* for powershot character */ ||
+        player->smashing_ground
     ) {
         return;
     }
