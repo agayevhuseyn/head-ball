@@ -136,7 +136,8 @@ static void super(Player *player, Game *game)
         player->powershot = true;
         break;
     case PLAYER_BALD:
-        ascir(player->p).radius = PLAYER_GAME_SIZE * 2.0f;
+        player->changing_size = 1;
+        player->target_size = PLAYER_GAME_SIZE * 2.0f;
         player->p.mass *= 6.0f;
         break;
     case PLAYER_MATRIX:
@@ -198,7 +199,8 @@ static void desuper(Player *player, Game *game)
 
     switch (player->index) {
     case PLAYER_BALD:
-        ascir(player->p).radius = PLAYER_GAME_SIZE;
+        player->changing_size = -1;
+        player->target_size = PLAYER_GAME_SIZE;
         player->p.mass /= 6.0f;
         break;
     case PLAYER_MATRIX:
@@ -286,6 +288,19 @@ void update_player(Player *player, void *gameptr, float dt)
 
     player->p.velo.y += GRAVITY * dt;
     ascir(player->p).pos.y += player->p.velo.y * dt;
+
+    static const float change_size_rate = 250.0f;
+    if (player->changing_size > 0) {
+        if ((ascir(player->p).radius += change_size_rate * dt) >= player->target_size) {
+            player->changing_size = 0;
+            ascir(player->p).radius = player->target_size;
+        }
+    } else if (player->changing_size < 0) {
+        if ((ascir(player->p).radius -= change_size_rate * dt) <= player->target_size) {
+            player->changing_size = 0;
+            ascir(player->p).radius = player->target_size;
+        }
+    }
 
     update_particles(ps[player->side], PART_SIZE, dt);
 

@@ -44,6 +44,8 @@ typedef struct {
     /* effects of supers */
     int powershot;
     int revctrl;
+    int changing_size; /* 1 grow, -1 shrink, 0 none */
+    float target_size;
 } Player;
 
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);
