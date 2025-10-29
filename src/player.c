@@ -9,6 +9,7 @@
 
 #define HBRADIUS 60
 #define POWERSHOT_BOUNCE 3
+#define DASH_SPEED_MULT 7.0f
 
 #define PART_SIZE 128
 static Particle ps[2][PART_SIZE] = {0};
@@ -46,6 +47,11 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     player->super.chr_time = 0.0f;
     player->super.use_time = 0.0f;
     switch (index) {
+    case PLAYER_BRUNETTE:
+        player->super.active = true;
+        player->super.maxchr_time = 1.4f;
+        player->super.maxuse_time = 0.12f;
+        break;
     case PLAYER_BLACK:
         player->super.active = true;
         player->super.maxchr_time = 4.0f;
@@ -121,8 +127,12 @@ static void desuper(Player *player, Game *game);
 
 static void super(Player *player, Game *game)
 {
+    if (player->index == PLAYER_BRUNETTE && player->dir.x == 0) {
+        return;
+    }
     if (player->index == PLAYER_MATRIX && player->super.being_used) {
-        desuper(player, game); 
+        desuper(player, game);
+        return;
     }
     if (player->index == PLAYER_SUMO && player->p.on_ground) {
         return;
@@ -140,6 +150,9 @@ static void super(Player *player, Game *game)
         : PLAYER_SIDE_LEFT
     ];
     switch (player->index) {
+    case PLAYER_BRUNETTE:
+        player->dash_dir = player->dir.x;
+        break;
     case PLAYER_BLACK:
         player->powershot = true;
         break;
@@ -296,9 +309,26 @@ void update_player(Player *player, void *gameptr, float dt)
     }
 
     player->p.velo.x = player->dir.x * player->speed;
-    ascir(player->p).pos.x += player->p.velo.x * dt;
-
     player->p.velo.y += GRAVITY * dt;
+
+    if (player->index == PLAYER_BRUNETTE && player->super.being_used) {
+        player->p.velo.x = player->dash_dir * player->speed * DASH_SPEED_MULT;
+        player->p.velo.y = 0;
+        emit_particles(
+            ps[player->side],                 /* Particle *ps,  */
+            PART_SIZE,          /* int size,  */
+            PARTICLE_CIRCLE,    /* int type,  */
+            1,                  /* int needed,  */
+            ascir(player->p).pos, /* Vector2 pos,  */
+            vec2zero,         /* Vector2 dir,  */
+            100,                /* float velo,  */
+            0.4f,               /* float life,  */
+            WHITE,             /* Color c,  */
+            ascir(player->p).radius   /* float psize  */
+        );
+    }
+
+    ascir(player->p).pos.x += player->p.velo.x * dt;
     ascir(player->p).pos.y += player->p.velo.y * dt;
 
     /* EGG */

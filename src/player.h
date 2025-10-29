@@ -42,6 +42,8 @@ typedef struct {
         float maxuse_time;
     } super;
     /* effects of supers */
+    /* brunette */
+    int dash_dir;
     /* black */
     int powershot;
     /* hacker */
