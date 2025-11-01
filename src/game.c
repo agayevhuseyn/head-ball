@@ -128,10 +128,12 @@ static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
     int new_col = col + dx;
     int new_row = row + dy;
 
+    /*
     if (new_col == other_col && new_row == other_row) {
         new_col += dx;
         new_row += dy;
     }
+    */
 
     if (new_col < 0)
         new_col = cols - 1;
@@ -143,10 +145,12 @@ static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
     else if (new_row > rows - 1)
         new_row = 0;
 
+    /*
     if (new_col == other_col && new_row == other_row) {
         new_col += dx;
         new_row += dy;
     }
+    */
 
     return new_col + new_row * cols;
 }
@@ -182,10 +186,10 @@ static void draw_menu(Game *game)
             PLAYER_SPRITE_SIZE
         };
         Rectangle dest = {
-            pos.x,
-            pos.y,
-            size.x,
-            size.y
+            pos.x + 12,
+            pos.y + 12,
+            size.x - 24,
+            size.y - 24
         };
         Rectangle frame = rec(pos.x - 8, pos.y - 8, size.x + 16, size.y + 16);
         Color c = WHITE;
@@ -194,7 +198,22 @@ static void draw_menu(Game *game)
         else if (right_pick == i)
             c = BLUE;
 
-        DrawRectangleRounded(frame, 0.15f, 0, c);
+        if (left_pick == i && i == right_pick) {
+            DrawTriangle(
+                vec2(frame.x, frame.y),
+                vec2(frame.x, frame.y + frame.height),
+                vec2(frame.x + frame.width, frame.y + frame.height),
+                RED
+            );
+            DrawTriangle(
+                vec2(frame.x, frame.y),
+                vec2(frame.x + frame.width, frame.y + frame.height),
+                vec2(frame.x + frame.width, frame.y),
+                BLUE
+            );
+        } else {
+            DrawRectangleRec(frame, c);
+        }
         DrawTexturePro(player_tex, src, dest, vec2(0, 0), 0, WHITE);
         pos.x += size.x + 32;
         if ((i + 1) % cols == 0) {
@@ -402,7 +421,7 @@ void update_game(Game *game, float dt)
     ball->hitleft_trail -= handle_coll(&ball->p, &b->p, dt);
 
     if (ball_push) {
-        ball->p.velo.y = -80.0f * (sqrtf(a->p.mass) + sqrtf(b->p.mass));
+        ball->p.velo.y = -60.0f * (sqrtf(a->p.mass) + sqrtf(b->p.mass));
         ball->p.velo.x = clamp(ball->p.velo.x, -100, 100);
     }
 
