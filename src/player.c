@@ -50,7 +50,7 @@ void init_player(Player *player, int index, int side, Vector2 pos,
     case PLAYER_BRUNETTE:
         player->super.active = true;
         player->super.maxchr_time = 1.4f;
-        player->super.maxuse_time = 0.12f;
+        player->super.maxuse_time = 0.09f;
         break;
     case PLAYER_BLACK:
         player->super.active = true;
@@ -127,9 +127,6 @@ static void desuper(Player *player, Game *game);
 
 static void super(Player *player, Game *game)
 {
-    if (player->index == PLAYER_BRUNETTE && player->dir.x == 0) {
-        return;
-    }
     if (player->index == PLAYER_MATRIX && player->super.being_used) {
         desuper(player, game);
         return;
@@ -151,7 +148,9 @@ static void super(Player *player, Game *game)
     ];
     switch (player->index) {
     case PLAYER_BRUNETTE:
-        player->dash_dir = player->dir.x;
+        player->dash_dir = player->dir.x
+            ? player->dir.x
+            : (ascir(game->ball.p).pos.x > ascir(player->p).pos.x ? 1 : -1);
         break;
     case PLAYER_BLACK:
         player->powershot = true;
