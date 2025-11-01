@@ -1,0 +1,9 @@
+*.aseprite
+shaders/
+abuild.sh
+android/
+/include/
+lib/
+assets/icon*
+raylib/
+*.apk
