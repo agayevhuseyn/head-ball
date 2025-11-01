@@ -7,12 +7,18 @@
 #include "font.h"
 #include <time.h>
 #include <stdlib.h>
+#include "ui.h"
+#include <stdio.h>
 
 
-/* GAME */
-#define game_onmenu(g)  ((g)->state == GAME_STATE_MENU)
-#define game_isrun(g)   ((g)->state == GAME_STATE_RUN)
-#define game_onpause(g) ((g)->state == GAME_STATE_PAUSE)
+/* STATE */
+#define game_onmenu(g)  ((g)->game_state == GAME_STATE_MENU)
+#define game_isrun(g)   ((g)->game_state == GAME_STATE_RUN)
+#define game_onpause(g) ((g)->game_state == GAME_STATE_PAUSE)
+
+#define menu_ismain(g)  ((g)->menu_state == MENU_STATE_MAIN)
+#define menu_ispick(g)  ((g)->menu_state == MENU_STATE_PICK)
+#define menu_issettings(g)  ((g)->menu_state == MENU_STATE_SETTINGS)
 
 /* BAR */
 #define BAR_WIDTH  180
@@ -77,6 +83,76 @@ static Texture2D player_tex;
 static Texture2D ball_tex;
 static int left_score = 0, right_score = 0;
 static int show_fps = false;
+
+enum {
+    BUTTON_MAIN_PLAY,
+    BUTTON_MAIN_SETTINGS,
+    BUTTON_MAIN_SIZE
+};
+static Button main_buttons[BUTTON_MAIN_SIZE];
+#define BUTTON_SIZE_WIDE vec2(256, 64)
+#define BUTTON_GAP 96
+
+static void init_main_buttons()
+{
+    main_buttons[BUTTON_MAIN_PLAY] = (Button) {
+        .rec = rec(
+            (WIDTH - BUTTON_SIZE_WIDE.x) / 2.0f,
+            (HEIGHT / 2.0f) - BUTTON_GAP * 2.0f,
+            BUTTON_SIZE_WIDE.x,
+            BUTTON_SIZE_WIDE.y
+        ),
+        .text = "Play"
+    };
+    main_buttons[BUTTON_MAIN_SETTINGS] = (Button) {
+        .rec = rec(
+            (WIDTH - BUTTON_SIZE_WIDE.x) / 2.0f,
+            (HEIGHT / 2.0f) - BUTTON_GAP * 1.0f,
+            BUTTON_SIZE_WIDE.x,
+            BUTTON_SIZE_WIDE.y
+        ),
+        .text = "Settings"
+    };
+}
+
+static void draw_main_buttons(Game *game, PlayerInputResult *lres, PlayerInputResult *rres)
+{
+    static int selected_button = -1;
+    static int prev_selected_button = -1;
+
+    int move_y = lres->press_axis.y + rres->press_axis.y;
+    int clicked = lres->forw_btn || rres->forw_btn;
+
+    if (move_y) {
+        prev_selected_button = selected_button;
+        selected_button += move_y;
+
+        if (selected_button < 0)
+            selected_button = BUTTON_MAIN_SIZE - 1;
+        else if (selected_button >= BUTTON_MAIN_SIZE)
+            selected_button = 0;
+
+        main_buttons[prev_selected_button].hovered = false;
+        main_buttons[selected_button].hovered = true;
+    }
+
+    if (clicked) {
+        switch (selected_button) {
+        case BUTTON_MAIN_PLAY:
+            puts("Play button clicked");
+            game->menu_state = MENU_STATE_PICK;
+            break;
+        case BUTTON_MAIN_SETTINGS:
+            puts("Settings button clicked");
+            game->menu_state = MENU_STATE_SETTINGS;
+            break;
+        }
+    }
+
+    for (int i = 0; i < BUTTON_MAIN_SIZE; i++) {
+        draw_button(&main_buttons[i]);
+    }
+}
 
 static void draw_recs(PObject *ps, int size)
 {
@@ -157,75 +233,81 @@ static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
 
 static void draw_menu(Game *game)
 {
-    static int left_pick  = -1;
-    static int right_pick = -1;
-
-    static const int cols = 4;
-    static const int rows = 2;
-
     PlayerInputResult lres = get_playerinputresult(&game->controls[PLAYER_SIDE_LEFT]);
     PlayerInputResult rres = get_playerinputresult(&game->controls[PLAYER_SIDE_RIGHT]);
 
-    int left_x  = lres.press_axis.x;
-    int left_y  = lres.press_axis.y;
-    int right_x = rres.press_axis.x;
-    int right_y = rres.press_axis.y;
+    if (menu_ismain(game)) {
+        draw_main_buttons(game, &lres, &rres);
+    } else if (menu_issettings(game)) {
+        /* TODO: SETTINGS */
+    } else if (menu_ispick(game)) {
+        static int left_pick  = -1;
+        static int right_pick = -1;
 
-    if (left_x || left_y)
-        left_pick  = move_picker(left_pick, left_x, left_y, right_pick, cols, rows);
-    if (right_x || right_y)
-        right_pick = move_picker(right_pick, right_x, right_y, left_pick, cols, rows);
-    
-    Vector2 size = vec2(256, 256);
-    Vector2 pos  = vec2(80, (HEIGHT - size.y * 2) / 2);
-    for (int i = 0; i < PLAYER_SIZE; i++) {
-        Rectangle src  = {
-            PLAYER_SPRITE_SIZE * i,
-            0,
-            PLAYER_SPRITE_SIZE,
-            PLAYER_SPRITE_SIZE
-        };
-        Rectangle dest = {
-            pos.x + 12,
-            pos.y + 12,
-            size.x - 24,
-            size.y - 24
-        };
-        Rectangle frame = rec(pos.x - 8, pos.y - 8, size.x + 16, size.y + 16);
-        Color c = WHITE;
-        if (left_pick == i)
-            c = RED;
-        else if (right_pick == i)
-            c = BLUE;
+        static const int cols = 4;
+        static const int rows = 2;
 
-        if (left_pick == i && i == right_pick) {
-            DrawTriangle(
-                vec2(frame.x, frame.y),
-                vec2(frame.x, frame.y + frame.height),
-                vec2(frame.x + frame.width, frame.y + frame.height),
-                RED
-            );
-            DrawTriangle(
-                vec2(frame.x, frame.y),
-                vec2(frame.x + frame.width, frame.y + frame.height),
-                vec2(frame.x + frame.width, frame.y),
-                BLUE
-            );
-        } else {
-            DrawRectangleRec(frame, c);
+        int left_x  = lres.press_axis.x;
+        int left_y  = lres.press_axis.y;
+        int right_x = rres.press_axis.x;
+        int right_y = rres.press_axis.y;
+
+        if (left_x || left_y)
+            left_pick  = move_picker(left_pick, left_x, left_y, right_pick, cols, rows);
+        if (right_x || right_y)
+            right_pick = move_picker(right_pick, right_x, right_y, left_pick, cols, rows);
+        
+        Vector2 size = vec2(256, 256);
+        Vector2 pos  = vec2(80, (HEIGHT - size.y * 2) / 2);
+        for (int i = 0; i < PLAYER_SIZE; i++) {
+            Rectangle src  = {
+                PLAYER_SPRITE_SIZE * i,
+                0,
+                PLAYER_SPRITE_SIZE,
+                PLAYER_SPRITE_SIZE
+            };
+            Rectangle dest = {
+                pos.x + 12,
+                pos.y + 12,
+                size.x - 24,
+                size.y - 24
+            };
+            Rectangle frame = rec(pos.x - 8, pos.y - 8, size.x + 16, size.y + 16);
+            Color c = WHITE;
+            if (left_pick == i)
+                c = RED;
+            else if (right_pick == i)
+                c = BLUE;
+
+            if (left_pick == i && i == right_pick) {
+                DrawTriangle(
+                    vec2(frame.x, frame.y),
+                    vec2(frame.x, frame.y + frame.height),
+                    vec2(frame.x + frame.width, frame.y + frame.height),
+                    RED
+                );
+                DrawTriangle(
+                    vec2(frame.x, frame.y),
+                    vec2(frame.x + frame.width, frame.y + frame.height),
+                    vec2(frame.x + frame.width, frame.y),
+                    BLUE
+                );
+            } else {
+                DrawRectangleRec(frame, c);
+            }
+            DrawTexturePro(player_tex, src, dest, vec2(0, 0), 0, WHITE);
+            pos.x += size.x + 32;
+            if ((i + 1) % cols == 0) {
+                pos.x = 80;
+                pos.y += size.y + 32;
+            }
         }
-        DrawTexturePro(player_tex, src, dest, vec2(0, 0), 0, WHITE);
-        pos.x += size.x + 32;
-        if ((i + 1) % cols == 0) {
-            pos.x = 80;
-            pos.y += size.y + 32;
-        }
-    }
 
-    if (lres.forw_btn || rres.forw_btn) {
-        if (left_pick != -1 && right_pick != -1) {
-            game->state = GAME_STATE_RUN;
-            start_game(game, left_pick, right_pick);
+        if (lres.forw_btn || rres.forw_btn) {
+            if (left_pick != -1 && right_pick != -1) {
+                game->game_state = GAME_STATE_RUN;
+                start_game(game, left_pick, right_pick);
+            }
         }
     }
 }
@@ -289,7 +371,9 @@ void init_game(Game *game)
     srand(time(NULL));
     *game = (Game) {0};
     /* game */
-    game->state = GAME_STATE_MENU;
+    game->game_state = GAME_STATE_MENU;
+    /* menu */
+    init_main_buttons();
     /* camera */
     game->cam = (Camera2D) {
         .offset = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
@@ -347,7 +431,7 @@ void update_game(Game *game, float dt)
         return;
     }
     if (IsKeyPressed(KEY_P)) {
-        game->state = game_onpause(game) ? GAME_STATE_RUN : GAME_STATE_PAUSE;
+        game->game_state = game_onpause(game) ? GAME_STATE_RUN : GAME_STATE_PAUSE;
     }
     if (game_onpause(game)) {
         return;
@@ -421,7 +505,7 @@ void update_game(Game *game, float dt)
     ball->hitleft_trail -= handle_coll(&ball->p, &b->p, dt);
 
     if (ball_push) {
-        ball->p.velo.y = -60.0f * (sqrtf(a->p.mass) + sqrtf(b->p.mass));
+        ball->p.velo.y = -60.0f * (powf(a->p.mass + b->p.mass, 0.55f));
         ball->p.velo.x = clamp(ball->p.velo.x, -100, 100);
     }
 

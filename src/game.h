@@ -3,9 +3,17 @@
 #include "ball.h"
 #include "input.h"
 
-#define GAME_STATE_MENU  0
-#define GAME_STATE_RUN   1
-#define GAME_STATE_PAUSE 2
+typedef enum {
+    GAME_STATE_MENU,
+    GAME_STATE_RUN,
+    GAME_STATE_PAUSE
+} GameState;
+
+typedef enum {
+    MENU_STATE_MAIN,
+    MENU_STATE_PICK,
+    MENU_STATE_SETTINGS
+} MenuState;
 
 #define GAME_ROUND_MAX_WAIT_TIME 1.5f
 
@@ -16,7 +24,8 @@ typedef struct {
     Ball ball;
     PObject borders[4];
     PObject bars[2];
-    int state;
+    GameState game_state;
+    MenuState menu_state;
     /* cleaning round */
     float wait_time;
     int cam_following_ball;

@@ -4,6 +4,7 @@
 
 int main(void)
 {
+    SetTraceLogLevel(LOG_WARNING);
     InitWindow(WIDTH, HEIGHT, TITLE);
     SetTargetFPS(FPS);
 
