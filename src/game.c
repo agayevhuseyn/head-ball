@@ -505,7 +505,7 @@ void update_game(Game *game, float dt)
     ball->hitleft_trail -= handle_coll(&ball->p, &b->p, dt);
 
     if (ball_push) {
-        ball->p.velo.y = -60.0f * (powf(a->p.mass + b->p.mass, 0.55f));
+        ball->p.velo.y = -70.0f * (sqrtf(a->p.mass) + sqrtf(b->p.mass));
         ball->p.velo.x = clamp(ball->p.velo.x, -100, 100);
     }
 
