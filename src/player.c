@@ -10,6 +10,7 @@
 #define HBRADIUS 60
 #define POWERSHOT_BOUNCE 3
 #define DASH_SPEED_MULT 7.0f
+#define SUMO_SMASH_MULTIPLIER 1.5f
 
 #define PART_SIZE 128
 static Particle ps[2][PART_SIZE] = {0};
@@ -355,7 +356,7 @@ void update_player(Player *player, void *gameptr, float dt)
             ];
 
         if (opponent->p.on_ground) {
-            opponent->p.velo.y = opponent->jmp_force;
+            opponent->p.velo.y = SUMO_SMASH_MULTIPLIER * opponent->jmp_force;
         }
 
         emit_particles_rand(
