@@ -84,14 +84,14 @@ static Texture2D ball_tex;
 static int left_score = 0, right_score = 0;
 static int show_fps = false;
 
+#define BUTTON_SIZE_WIDE vec2(256, 64)
+#define BUTTON_GAP 96
 enum {
     BUTTON_MAIN_PLAY,
     BUTTON_MAIN_SETTINGS,
     BUTTON_MAIN_SIZE
 };
 static Button main_buttons[BUTTON_MAIN_SIZE];
-#define BUTTON_SIZE_WIDE vec2(256, 64)
-#define BUTTON_GAP 96
 
 static void init_main_buttons()
 {
@@ -154,6 +154,209 @@ static void draw_main_buttons(Game *game, PlayerInputResult *lres, PlayerInputRe
     }
 }
 
+enum {
+    BUTTON_SETTINGS_LP_KEY_LEFT,
+    BUTTON_SETTINGS_LP_KEY_RIGHT,
+    BUTTON_SETTINGS_LP_KEY_UP,
+    BUTTON_SETTINGS_LP_KEY_DOWN,
+    BUTTON_SETTINGS_LP_KEY_SUPER,
+    BUTTON_SETTINGS_LP_KEY_STRHIT,
+    BUTTON_SETTINGS_LP_KEY_UPHIT,
+    BUTTON_SETTINGS_RP_KEY_LEFT,
+    BUTTON_SETTINGS_RP_KEY_RIGHT,
+    BUTTON_SETTINGS_RP_KEY_UP,
+    BUTTON_SETTINGS_RP_KEY_DOWN,
+    BUTTON_SETTINGS_RP_KEY_SUPER,
+    BUTTON_SETTINGS_RP_KEY_STRHIT,
+    BUTTON_SETTINGS_RP_KEY_UPHIT,
+    BUTTON_SETTINGS_SIZE
+};
+static Button settings_buttons[BUTTON_SETTINGS_SIZE];
+
+static void init_settings_buttons()
+{
+    Vector2 start_pos = vec2(WIDTH / 2.0 - BUTTON_SIZE_WIDE.x - BUTTON_GAP, 32);
+    Vector2 pos = start_pos;
+    for (int i = 0; i < BUTTON_SETTINGS_SIZE; i++) {
+        settings_buttons[i] = (Button) {
+            .rec = recv(
+                pos, BUTTON_SIZE_WIDE
+            )
+        };
+        const char *text;
+        switch (i % (BUTTON_SETTINGS_SIZE / 2)) {
+        case 0: text = "Left"; break;
+        case 1: text = "Right"; break;
+        case 2: text = "Up"; break;
+        case 3: text = "Down"; break;
+        case 4: text = "Super"; break;
+        case 5: text = "Hit"; break;
+        case 6: text = "Chip"; break;
+        }
+        settings_buttons[i].text = text;
+
+        if (i + 1 == BUTTON_SETTINGS_SIZE / 2) {
+            pos.x = WIDTH / 2.0f + BUTTON_GAP;
+            pos.y = start_pos.y;
+        } else {
+            pos.y += BUTTON_SIZE_WIDE.y + 16;
+        }
+    }
+}
+
+static void draw_settings_buttons(Game *game, PlayerInputResult *lres, PlayerInputResult *rres)
+{
+    static int selected_button = -1;
+    static int prev_selected_button = -1;
+    static int col = 0, row = 0;
+    static const int btn_each_col = BUTTON_SETTINGS_SIZE / 2;
+    static int waiting_for_input = false;
+
+    int move_y = lres->press_axis.y + rres->press_axis.y;
+    int move_x = lres->press_axis.x + rres->press_axis.x;
+    int clicked = !waiting_for_input && (lres->forw_btn || rres->forw_btn);
+
+    if (!waiting_for_input && (move_x || move_y)) {
+        if (col + move_x < 0)
+            col = 1;
+        else if (col + move_x > 1)
+            col = 0;
+        else
+            col += move_x;
+
+        if (row + move_y < 0)
+            row = btn_each_col - 1;
+        else if (row + move_y >= btn_each_col)
+            row = 0;
+        else
+            row += move_y;
+
+        prev_selected_button = selected_button;
+        selected_button = col * btn_each_col + row;
+
+        settings_buttons[prev_selected_button].hovered = false;
+        settings_buttons[selected_button].hovered = true;
+    }
+
+    if (waiting_for_input) {
+        PlayerControl *pc =
+            &game->controls[
+                selected_button < btn_each_col
+                    ? PLAYER_SIDE_LEFT
+                    : PLAYER_SIDE_RIGHT
+            ];
+        int pressed_key = GetKeyPressed();
+        if (pressed_key) {
+            waiting_for_input = false;
+            switch (selected_button) {
+            case BUTTON_SETTINGS_LP_KEY_LEFT: case BUTTON_SETTINGS_RP_KEY_LEFT:
+                pc->keyboard.left_btn = pressed_key;
+                break;
+            case BUTTON_SETTINGS_LP_KEY_RIGHT: case BUTTON_SETTINGS_RP_KEY_RIGHT:
+                pc->keyboard.right_btn = pressed_key;
+                break;
+            case BUTTON_SETTINGS_LP_KEY_UP: case BUTTON_SETTINGS_RP_KEY_UP:
+                pc->keyboard.up_btn = pressed_key;
+                break;
+            case BUTTON_SETTINGS_LP_KEY_DOWN: case BUTTON_SETTINGS_RP_KEY_DOWN:
+                pc->keyboard.down_btn = pressed_key;
+                break;
+            case BUTTON_SETTINGS_LP_KEY_SUPER: case BUTTON_SETTINGS_RP_KEY_SUPER:
+                pc->keyboard.super_btn = pressed_key;
+                break;
+            case BUTTON_SETTINGS_LP_KEY_STRHIT: case BUTTON_SETTINGS_RP_KEY_STRHIT:
+                pc->keyboard.strhit_btn = pressed_key;
+                break;
+            case BUTTON_SETTINGS_LP_KEY_UPHIT: case BUTTON_SETTINGS_RP_KEY_UPHIT:
+                pc->keyboard.uphit_btn = pressed_key;
+                break;
+            }
+        }
+    }
+
+    if (clicked) {
+        waiting_for_input = true; 
+    }
+
+    for (int i = 0; i < BUTTON_SETTINGS_SIZE; i++) {
+        Button b = settings_buttons[i];
+        if (i == selected_button && waiting_for_input)
+            b.pressed = true;
+
+        int key;
+        PlayerControl *lc = &game->controls[PLAYER_SIDE_LEFT];
+        PlayerControl *rc = &game->controls[PLAYER_SIDE_RIGHT];
+        switch (i) {
+        case BUTTON_SETTINGS_LP_KEY_LEFT:
+            key = lc->keyboard.left_btn;
+            break;
+        case BUTTON_SETTINGS_RP_KEY_LEFT:
+            key = rc->keyboard.left_btn;
+            break;
+        case BUTTON_SETTINGS_LP_KEY_RIGHT:
+            key = lc->keyboard.right_btn;
+            break;
+        case BUTTON_SETTINGS_RP_KEY_RIGHT:
+            key = rc->keyboard.right_btn;
+            break;
+        case BUTTON_SETTINGS_LP_KEY_UP:
+            key = lc->keyboard.up_btn;
+            break;
+        case BUTTON_SETTINGS_RP_KEY_UP:
+            key = rc->keyboard.up_btn;
+            break;
+        case BUTTON_SETTINGS_LP_KEY_DOWN:
+            key = lc->keyboard.down_btn;
+            break;
+        case BUTTON_SETTINGS_RP_KEY_DOWN:
+            key = rc->keyboard.down_btn;
+            break;
+        case BUTTON_SETTINGS_LP_KEY_SUPER:
+            key = lc->keyboard.super_btn;
+            break;
+        case BUTTON_SETTINGS_RP_KEY_SUPER:
+            key = rc->keyboard.super_btn;
+            break;
+        case BUTTON_SETTINGS_LP_KEY_STRHIT:
+            key = lc->keyboard.strhit_btn;
+            break;
+        case BUTTON_SETTINGS_RP_KEY_STRHIT:
+            key = rc->keyboard.strhit_btn;
+            break;
+        case BUTTON_SETTINGS_LP_KEY_UPHIT:
+            key = lc->keyboard.uphit_btn;
+            break;
+        case BUTTON_SETTINGS_RP_KEY_UPHIT:
+            key = rc->keyboard.uphit_btn;
+            break;
+        }
+        b.text = TextFormat("%s: %d", settings_buttons[i].text, key);
+        draw_button(&b);
+    }
+}
+
+static int save_settings(Game *game)
+{
+    FILE *f = fopen("settings.conf", "wb");
+    if (!f)
+        return 1;
+
+    fwrite(game->controls, sizeof(game->controls[0]), 2, f);
+    fclose(f);
+    return 0;
+}
+
+static int load_settings(Game *game)
+{
+    FILE *f = fopen("settings.conf", "rb");
+    if (!f)
+        return 1;
+
+    fread(game->controls, sizeof(game->controls[0]), 2, f);
+    fclose(f);
+    return 0;
+}
+
 static void draw_recs(PObject *ps, int size)
 {
     for (int i = 0; i < size; i++) {
@@ -170,8 +373,23 @@ static void cam_posclamp(Camera2D *cam, Vector2 pos)
     cam->target.y = clamp(pos.y, halfy, HEIGHT - halfy);
 }
 
+static void cam_reset(Camera2D *cam)
+{
+    *cam = (Camera2D) {
+        .offset = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
+        .rotation = 0,
+        .target = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
+        .zoom = 1.0f,
+    };
+}
+
 static void start_game(Game *game, int left, int right)
 {
+    left_score = right_score = 0;
+    cam_reset(&game->cam);
+    game->resetting_ball = false;
+    game->cam_following_ball = false;
+    game->wait_time = 0;
     init_ball(&game->ball, BALL_START_POS, 32);
     init_player(&game->players[PLAYER_SIDE_LEFT], left, PLAYER_SIDE_LEFT, PLAYER_LEFT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
     init_player(&game->players[PLAYER_SIDE_RIGHT], right, PLAYER_SIDE_RIGHT, PLAYER_RIGHT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
@@ -240,6 +458,7 @@ static void draw_menu(Game *game)
         draw_main_buttons(game, &lres, &rres);
     } else if (menu_issettings(game)) {
         /* TODO: SETTINGS */
+        draw_settings_buttons(game, &lres, &rres);
     } else if (menu_ispick(game)) {
         static int left_pick  = -1;
         static int right_pick = -1;
@@ -374,13 +593,9 @@ void init_game(Game *game)
     game->game_state = GAME_STATE_MENU;
     /* menu */
     init_main_buttons();
+    init_settings_buttons();
     /* camera */
-    game->cam = (Camera2D) {
-        .offset = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
-        .rotation = 0,
-        .target = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
-        .zoom = 1.0f,
-    };
+    cam_reset(&game->cam);
     /* textures */
     load_font("assets/joystixmono.otf");
     bg_tex = LoadTexture("assets/bg.png");
@@ -392,6 +607,7 @@ void init_game(Game *game)
     /* gamepad */
     game->controls[PLAYER_SIDE_LEFT]  = control_left;
     game->controls[PLAYER_SIDE_RIGHT] = control_right;
+    load_settings(game);
     /* bars */
     game->bars[PLAYER_SIDE_LEFT]  = pobject_staticrec(rec(0, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
     game->bars[PLAYER_SIDE_RIGHT] = pobject_staticrec(rec(WIDTH - BAR_WIDTH, BAR_POS_Y, BAR_WIDTH, BAR_HEIGHT));
@@ -424,6 +640,30 @@ void draw_game(Game *game)
 
 void update_game(Game *game, float dt)
 {
+    PlayerInputResult lres = get_playerinputresult(&game->controls[PLAYER_SIDE_LEFT]);
+    PlayerInputResult rres = get_playerinputresult(&game->controls[PLAYER_SIDE_RIGHT]);
+    int quit = IsKeyPressed(KEY_ESCAPE) || lres.back_btn || rres.back_btn;
+
+    if (quit) {
+        switch (game->game_state) {
+        case GAME_STATE_MENU:
+            switch (game->menu_state) {
+            case MENU_STATE_MAIN:
+                exit(0);
+            case MENU_STATE_SETTINGS:
+                save_settings(game);
+            case MENU_STATE_PICK:
+                game->menu_state = MENU_STATE_MAIN;
+                break;
+            }
+        case GAME_STATE_RUN: case GAME_STATE_PAUSE:
+            cam_reset(&game->cam);
+            game->game_state = GAME_STATE_MENU;
+            //game->menu_state = MENU_STATE_PICK;
+            break;
+        }
+    }
+
     if (IsKeyPressed(KEY_F1))
         show_fps = !show_fps;
 
@@ -436,6 +676,7 @@ void update_game(Game *game, float dt)
     if (game_onpause(game)) {
         return;
     }
+
     Player *a  = &game->players[0];
     Player *b  = &game->players[1];
     Ball *ball = &game->ball;

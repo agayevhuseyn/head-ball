@@ -9,6 +9,7 @@ typedef struct {
     Rectangle rec;
     const char *text;
     int hovered;
+    int pressed;
 } Button;
 
 int is_button_pressed(Button *b);

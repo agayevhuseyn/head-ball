@@ -5,6 +5,7 @@
 #include <raymath.h>
 #include "game.h"
 #include "particle.h"
+#include <string.h> /* memset */
 
 
 #define HBRADIUS 60
@@ -18,6 +19,9 @@ static Particle ps[2][PART_SIZE] = {0};
 void init_player(Player *player, int index, int side, Vector2 pos,
                  float radius, float speed, float jmp_force)
 {
+    /* reset particles */
+    memset(ps[side], 0, sizeof(ps[side]));
+    /* player */
     *player = (Player) {0};
     /* physics */
     player->p.type = POBJECT_CIR;

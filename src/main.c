@@ -6,6 +6,7 @@ int main(void)
 {
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(WIDTH, HEIGHT, TITLE);
+    SetExitKey(KEY_NULL);
     SetTargetFPS(FPS);
 
     Game game;
