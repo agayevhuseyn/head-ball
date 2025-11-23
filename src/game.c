@@ -17,8 +17,17 @@
 #define game_onpause(g) ((g)->game_state == GAME_STATE_PAUSE)
 
 #define menu_ismain(g)  ((g)->menu_state == MENU_STATE_MAIN)
+#define menu_ismode(g)  ((g)->menu_state == MENU_STATE_PLAYMODE)
 #define menu_ispick(g)  ((g)->menu_state == MENU_STATE_PICK)
 #define menu_issettings(g)  ((g)->menu_state == MENU_STATE_SETTINGS)
+
+
+#define reset_picks(g) ( \
+    (g)->picks[PLAYER_SIDE_LEFT] = (g)->picks[PLAYER_SIDE_RIGHT] = -1 \
+)
+
+#define mode_issingle(g) ((g)->game_mode == GAME_MODE_SINGLE)
+#define mode_ismulti(g)  ((g)->game_mode == GAME_MODE_MULTI)
 
 /* BAR */
 #define BAR_WIDTH  180
@@ -139,11 +148,9 @@ static void draw_main_buttons(Game *game, PlayerInputResult *lres, PlayerInputRe
     if (clicked) {
         switch (selected_button) {
         case BUTTON_MAIN_PLAY:
-            puts("Play button clicked");
-            game->menu_state = MENU_STATE_PICK;
+            game->menu_state = MENU_STATE_PLAYMODE;
             break;
         case BUTTON_MAIN_SETTINGS:
-            puts("Settings button clicked");
             game->menu_state = MENU_STATE_SETTINGS;
             break;
         }
@@ -357,10 +364,68 @@ static int load_settings(Game *game)
     return 0;
 }
 
-static void draw_recs(PObject *ps, int size)
+static Button mode_buttons[GAME_MODE_SIZE];
+
+static void init_mode_buttons()
 {
-    for (int i = 0; i < size; i++) {
-        DrawRectangleRec(asrec(ps[i]), RED);
+    mode_buttons[GAME_MODE_SINGLE] = (Button) {
+        .rec = rec(
+            WIDTH / 2.0f - BUTTON_SIZE_WIDE.x - BUTTON_GAP / 2.0f,
+            HEIGHT / 2.0f - BUTTON_SIZE_WIDE.x / 1.3f,
+            BUTTON_SIZE_WIDE.x,
+            BUTTON_SIZE_WIDE.x
+        ),
+        .text = "1P"
+    };
+    mode_buttons[GAME_MODE_MULTI] = (Button) {
+        .rec = rec(
+            WIDTH / 2.0f + BUTTON_GAP / 2.0f,
+            HEIGHT / 2.0f - BUTTON_SIZE_WIDE.x / 1.3f,
+            BUTTON_SIZE_WIDE.x,
+            BUTTON_SIZE_WIDE.x
+        ),
+        .text = "2P"
+    };
+}
+
+static void draw_mode_buttons(Game *game, PlayerInputResult *lres, PlayerInputResult *rres)
+{
+    static int selected_button = -1;
+    static int prev_selected_button = -1;
+
+    int move_x = lres->press_axis.x + rres->press_axis.x;
+    int clicked = lres->forw_btn || rres->forw_btn;
+
+    if (move_x) {
+        prev_selected_button = selected_button;
+        selected_button += move_x;
+
+        if (selected_button < 0)
+            selected_button = 1;
+        else if (selected_button >= 2)
+            selected_button = 0;
+
+        mode_buttons[prev_selected_button].hovered = false;
+        mode_buttons[selected_button].hovered = true;
+    }
+
+    if (clicked) {
+        switch (selected_button) {
+        case GAME_MODE_SINGLE:
+            puts("Singleplayer mode selected");
+            game->game_mode = GAME_MODE_SINGLE;
+            break;
+        case GAME_MODE_MULTI:
+            puts("Multiplayer mode selected");
+            game->game_mode = GAME_MODE_MULTI;
+            break;
+        }
+        reset_picks(game);
+        game->menu_state = MENU_STATE_PICK;
+    }
+
+    for (int i = 0; i < GAME_MODE_SIZE; i++) {
+        draw_button(&mode_buttons[i]);
     }
 }
 
@@ -393,6 +458,11 @@ static void start_game(Game *game, int left, int right)
     init_ball(&game->ball, BALL_START_POS, 32);
     init_player(&game->players[PLAYER_SIDE_LEFT], left, PLAYER_SIDE_LEFT, PLAYER_LEFT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
     init_player(&game->players[PLAYER_SIDE_RIGHT], right, PLAYER_SIDE_RIGHT, PLAYER_RIGHT_START_POS, PLAYER_GAME_SIZE, SPEED, JMP_FORCE);
+
+    if (mode_issingle(game))
+        game->players[PLAYER_SIDE_RIGHT].is_bot = true;
+    else
+        game->players[PLAYER_SIDE_RIGHT].is_bot = false;
 }
 
 static void reset_game(Game *game)
@@ -457,24 +527,30 @@ static void draw_menu(Game *game)
     if (menu_ismain(game)) {
         draw_main_buttons(game, &lres, &rres);
     } else if (menu_issettings(game)) {
-        /* TODO: SETTINGS */
         draw_settings_buttons(game, &lres, &rres);
+    } else if (menu_ismode(game)) {
+        draw_mode_buttons(game, &lres, &rres);
     } else if (menu_ispick(game)) {
-        static int left_pick  = -1;
-        static int right_pick = -1;
+        int *left_pick  = &game->picks[PLAYER_SIDE_LEFT];
+        int *right_pick = &game->picks[PLAYER_SIDE_RIGHT];
 
         static const int cols = 4;
         static const int rows = 2;
 
         int left_x  = lres.press_axis.x;
         int left_y  = lres.press_axis.y;
-        int right_x = rres.press_axis.x;
-        int right_y = rres.press_axis.y;
+        int right_x = 0;
+        int right_y = 0;
+
+        if (mode_ismulti(game)) {
+            right_x = rres.press_axis.x;
+            right_y = rres.press_axis.y;
+        }
 
         if (left_x || left_y)
-            left_pick  = move_picker(left_pick, left_x, left_y, right_pick, cols, rows);
+            *left_pick  = move_picker(*left_pick, left_x, left_y, *right_pick, cols, rows);
         if (right_x || right_y)
-            right_pick = move_picker(right_pick, right_x, right_y, left_pick, cols, rows);
+            *right_pick = move_picker(*right_pick, right_x, right_y, *left_pick, cols, rows);
         
         Vector2 size = vec2(256, 256);
         Vector2 pos  = vec2(80, (HEIGHT - size.y * 2) / 2);
@@ -493,12 +569,12 @@ static void draw_menu(Game *game)
             };
             Rectangle frame = rec(pos.x - 8, pos.y - 8, size.x + 16, size.y + 16);
             Color c = WHITE;
-            if (left_pick == i)
+            if (*left_pick == i)
                 c = RED;
-            else if (right_pick == i)
+            else if (mode_ismulti(game) && *right_pick == i)
                 c = BLUE;
 
-            if (left_pick == i && i == right_pick) {
+            if (mode_ismulti(game) && *left_pick == i && i == *right_pick) {
                 DrawTriangle(
                     vec2(frame.x, frame.y),
                     vec2(frame.x, frame.y + frame.height),
@@ -523,9 +599,18 @@ static void draw_menu(Game *game)
         }
 
         if (lres.forw_btn || rres.forw_btn) {
-            if (left_pick != -1 && right_pick != -1) {
+            int start = false;
+            if (mode_issingle(game)) {
+                if (*left_pick != -1) {
+                    *right_pick = rand() % PLAYER_SIZE;
+                    start = true;
+                }
+            } else if (*left_pick != -1 && *right_pick != -1) {
+                start = true;
+            }
+            if (start) {
                 game->game_state = GAME_STATE_RUN;
-                start_game(game, left_pick, right_pick);
+                start_game(game, *left_pick, *right_pick);
             }
         }
     }
@@ -534,10 +619,10 @@ static void draw_menu(Game *game)
 static void draw_gameui(Game *game)
 {
     if (show_fps)
-        draw_text(TextFormat("%i", GetFPS()), vec2(8, 8), 32, BLACK);
+        draw_text(TextFormat("%d", GetFPS()), vec2(8, 8), 32, BLACK);
 
-    draw_text(TextFormat("%i", left_score), vec2(64, 32), 64, BLACK);
-    draw_text(TextFormat("%i", right_score), vec2(WIDTH - 8 - 64 - 32, 32), 64, BLACK);
+    draw_text(TextFormat("%d", left_score), vec2(64, 32), 64, BLACK);
+    draw_text(TextFormat("%d", right_score), vec2(WIDTH - 8 - 64 - 32, 32), 64, BLACK);
 
     /* bars */
     Player *a = &game->players[0];
@@ -594,6 +679,9 @@ void init_game(Game *game)
     /* menu */
     init_main_buttons();
     init_settings_buttons();
+    init_mode_buttons();
+    /* picking */
+    reset_picks(game);
     /* camera */
     cam_reset(&game->cam);
     /* textures */
@@ -650,9 +738,14 @@ void update_game(Game *game, float dt)
             switch (game->menu_state) {
             case MENU_STATE_MAIN:
                 exit(0);
+            case MENU_STATE_PLAYMODE:
+                game->menu_state = MENU_STATE_MAIN;
+                break;
+            case MENU_STATE_PICK:
+                game->menu_state = MENU_STATE_PLAYMODE;
+                break;
             case MENU_STATE_SETTINGS:
                 save_settings(game);
-            case MENU_STATE_PICK:
                 game->menu_state = MENU_STATE_MAIN;
                 break;
             }

@@ -31,6 +31,7 @@ typedef struct {
     int index;
     Vector2 hboffset;
     float hbradius;
+    int is_bot;
     /* super */
     struct {
         int active;

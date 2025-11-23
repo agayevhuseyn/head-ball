@@ -5,7 +5,9 @@
 #include <raymath.h>
 #include "game.h"
 #include "particle.h"
+#include <stdbool.h>
 #include <string.h> /* memset */
+#include <stdlib.h> /* rand */
 
 
 #define HBRADIUS 60
@@ -285,10 +287,81 @@ static void hit_diagonal(Ball *b, float velo, int *powershot, int side)
     }
 }
 
+static Vector2 predict_ballpos(Ball *ball, float dt)
+{
+    Vector2 pos  = ascir(ball->p).pos;
+    Vector2 velo = ball->p.velo;
+
+    velo.y += GRAVITY * dt * ball->time_scale;
+    pos.x += velo.x * dt * ball->time_scale;
+    pos.y += velo.y * dt * ball->time_scale;
+
+    return pos;
+}
+
+#include <stdio.h>
+static void update_bot(Player *player, PlayerInputResult *ires, Game *game, float dt)
+{
+    static enum {
+        IDLE,
+        CHASE,
+        ATTACK,
+        DEFEND,
+        SUPER
+    } state = IDLE;
+
+    Ball *ball = &game->ball;
+    Vector2 pred_ballpos = predict_ballpos(&game->ball, dt);
+    Vector2 player_pos = ascir(player->p).pos;
+    if (vec2dist(ascir(player->p).pos, pred_ballpos) < 100) {
+        puts("IDLE");
+        state = IDLE;
+    } else if (vec2dist(ascir(player->p).pos, pred_ballpos) < 250) {
+        puts("ATTACK");
+        state = ATTACK;
+    } else if (ball->p.velo.x > 0) {
+        puts("DEFEND");
+        state = DEFEND;
+    } else if (0 && ball->p.velo.x > 0) {
+    } else {
+        puts("CHASE");
+        state = CHASE;
+    }
+
+    switch (state) {
+    case IDLE:
+        break;
+    case CHASE:
+        ires->iaxis.x = pred_ballpos.x - player_pos.x < 0 ? -1 : 1;
+        break;
+    case ATTACK:
+        ires->iaxis.x = pred_ballpos.x - player_pos.x < 0 ? -1 : 1;
+        if (rand() % 30 == 0) {
+            (rand() % 2 == 0)
+                ? (ires->strhit_btn = true)
+                : (ires->uphit_btn = true);
+        }
+        break;
+    case DEFEND:
+        if (rand() % 100 == 0) {
+            ires->press_axis.y = -1;
+        }
+        ires->iaxis.x = 1;
+        break;
+    case SUPER:
+        break;
+    }
+}
+
 void update_player(Player *player, void *gameptr, float dt)
 {
     Game *game = (Game*)gameptr;
-    PlayerInputResult ires = get_playerinputresult(&game->controls[player->side]);
+    PlayerInputResult ires = {0};
+
+    if (player->is_bot)
+        update_bot(player, &ires, game, dt);
+    else
+        ires = get_playerinputresult(&game->controls[player->side]);
 
     player->dir.x = player->revctrl ? -ires.iaxis.x : ires.iaxis.x;
 
