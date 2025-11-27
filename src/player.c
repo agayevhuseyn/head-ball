@@ -336,14 +336,14 @@ static void update_bot(Player *player, PlayerInputResult *ires, Game *game, floa
         break;
     case ATTACK:
         ires->iaxis.x = pred_ballpos.x - player_pos.x < 0 ? -1 : 1;
-        if (rand() % 30 == 0) {
+        if (rand() % 20 == 0) {
             (rand() % 2 == 0)
                 ? (ires->strhit_btn = true)
                 : (ires->uphit_btn = true);
         }
         break;
     case DEFEND:
-        if (rand() % 100 == 0) {
+        if (rand() % 15 == 0) {
             ires->press_axis.y = -1;
         }
         ires->iaxis.x = 1;
@@ -353,15 +353,14 @@ static void update_bot(Player *player, PlayerInputResult *ires, Game *game, floa
     }
 }
 
-void update_player(Player *player, void *gameptr, float dt)
+void update_player(Player *player, PlayerInputResult ires, void *gameptr, float dt)
 {
     Game *game = (Game*)gameptr;
-    PlayerInputResult ires = {0};
 
-    if (player->is_bot)
+    if (player->is_bot) {
+        ires = (PlayerInputResult) {0};
         update_bot(player, &ires, game, dt);
-    else
-        ires = get_playerinputresult(&game->controls[player->side]);
+    }
 
     player->dir.x = player->revctrl ? -ires.iaxis.x : ires.iaxis.x;
 

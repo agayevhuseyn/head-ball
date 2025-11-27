@@ -825,8 +825,8 @@ void update_game(Game *game, float dt)
         reset_game(game);
     }
 
-    update_player(a, game, dt);
-    update_player(b, game, dt);
+    update_player(a, lres, game, dt);
+    update_player(b, rres, game, dt);
 
     int ball_push =
         check_cir_coll(ascir(ball->p), ascir(a->p), NULL, NULL) &&

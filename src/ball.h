@@ -5,7 +5,7 @@
 #include "player.h"
 #include "physics.h"
 
-#define BALL_MAX_STOP_TIME 5.0f
+#define BALL_MAX_STOP_TIME 1.0f
 
 typedef struct {
     PObject p;

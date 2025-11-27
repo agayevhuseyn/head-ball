@@ -3,6 +3,7 @@
 
 #include <raylib.h>
 #include "physics.h"
+#include "input.h"
 
 #define PLAYER_SIDE_LEFT  0
 #define PLAYER_SIDE_RIGHT 1
@@ -58,6 +59,6 @@ typedef struct {
 
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);
 void draw_player(Player *player, Texture2D sheet);
-void update_player(Player *player, void *gameptr, float dt);
+void update_player(Player *player, PlayerInputResult ires, void *gameptr, float dt);
 
 #endif
