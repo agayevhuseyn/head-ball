@@ -58,10 +58,14 @@ void init_ball(Ball *ball, int type, Vector2 pos, float radius)
 void draw_ball(Ball *ball, Texture2D tex)
 {
     //DrawCircleV(ascir(ball->p).pos, ascir(ball->p).radius * 1.1f, BLACK);
+    float radius = ascir(ball->p).radius;
+    float height = ascir(ball->p).pos.y - GROUND;
+    float shadow_intense = 1.0f - -height / GROUND;
+    DrawEllipse(ascir(ball->p).pos.x, GROUND + 10, radius, radius/16, color(0, 0, 0, 120 * shadow_intense));
     draw_particles(ps, PART_SIZE);
     Rectangle src  = { BALL_SPRITE_SIZE * ball->type, 0, BALL_SPRITE_SIZE, BALL_SPRITE_SIZE };
-    Rectangle dest = { ascir(ball->p).pos.x, ascir(ball->p).pos.y, ascir(ball->p).radius * 2, ascir(ball->p).radius * 2 };
-    DrawTexturePro(tex, src, dest, vec2(ascir(ball->p).radius, ascir(ball->p).radius), ball->rot, WHITE);
+    Rectangle dest = { ascir(ball->p).pos.x, ascir(ball->p).pos.y, radius * 2, radius * 2 };
+    DrawTexturePro(tex, src, dest, vec2(radius, radius), ball->rot, WHITE);
     //draw_particles(ps, PART_SIZE);
 }
 

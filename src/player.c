@@ -2,6 +2,7 @@
 #include "config.h"
 #include "macros.h"
 #include <math.h>
+#include <raylib.h>
 #include <raymath.h>
 #include "game.h"
 #include "particle.h"
@@ -127,6 +128,9 @@ void draw_player(Player *player, Texture2D sheet)
     };
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
     //DrawCircleV(hb_pos, player->hbradius, color);
+    float height = ascir(player->p).pos.y - GROUND;
+    float shadow_intense = 1.0f - -height / GROUND;
+    DrawEllipse(ascir(player->p).pos.x, GROUND + 10, radius, radius/16, color(0, 0, 0, 120 * shadow_intense));
     draw_particles(ps[player->side], PART_SIZE);
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
 }
