@@ -12,7 +12,8 @@ typedef enum {
 typedef enum {
     MENU_STATE_MAIN,
     MENU_STATE_PLAYMODE,
-    MENU_STATE_PICK,
+    MENU_STATE_BALLPICK,
+    MENU_STATE_CHARPICK,
     MENU_STATE_SETTINGS
 } MenuState;
 
@@ -34,8 +35,10 @@ typedef struct {
     GameState game_state;
     MenuState menu_state;
     int game_mode; /* single or multiplayer */
+    /* picking ball state */
+    int ball_pick;
     /* picking character state */
-    int picks[2];
+    int char_picks[2];
     /* cleaning round */
     float wait_time;
     int cam_following_ball;

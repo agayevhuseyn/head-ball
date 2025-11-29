@@ -8,8 +8,8 @@
 #define PLAYER_SIDE_LEFT  0
 #define PLAYER_SIDE_RIGHT 1
 
-#define PLAYER_SPRITE_SIZE 32
-#define PLAYER_GAME_SIZE 64
+#define PLAYER_SPRITE_SIZE 32 /* full */
+#define PLAYER_GAME_SIZE 64 /* radius */
 
 enum {
     PLAYER_BRUNETTE,
@@ -55,6 +55,8 @@ typedef struct {
     float target_size;
     /* sumo */
     int smashing_ground;
+    /* bomb */
+    int stunned;
 } Player;
 
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);

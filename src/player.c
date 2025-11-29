@@ -360,6 +360,8 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
     if (player->is_bot) {
         ires = (PlayerInputResult) {0};
         update_bot(player, &ires, game, dt);
+    } else if (player->stunned) {
+        ires = (PlayerInputResult) {0};
     }
 
     player->dir.x = player->revctrl ? -ires.iaxis.x : ires.iaxis.x;
@@ -452,8 +454,6 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
         );
     }
 
-
-    update_particles(ps[player->side], PART_SIZE, dt);
     /* BLACK */
     if (player->powershot) {
         emit_particles_rand(
@@ -470,6 +470,8 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
         );
     }
 
+    /* PARTICLES */
+    update_particles(ps[player->side], PART_SIZE, dt);
 
     /* super */
     if (
