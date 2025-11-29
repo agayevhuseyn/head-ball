@@ -57,6 +57,9 @@ typedef struct {
     int smashing_ground;
     /* bomb */
     int stunned;
+    /* breath */
+    float breath;
+    float height_diff;
 } Player;
 
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);

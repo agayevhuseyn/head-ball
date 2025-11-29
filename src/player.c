@@ -118,11 +118,12 @@ void draw_player(Player *player, Texture2D sheet)
         PLAYER_SPRITE_SIZE
     };
     float radius = ascir(player->p).radius;
+    player->height_diff = sinf(player->breath * 4) * 8;
     Rectangle dest = {
         ascir(player->p).pos.x - radius,
-        ascir(player->p).pos.y - radius,
+        ascir(player->p).pos.y - radius - player->height_diff,
         radius * 2,
-        radius * 2
+        radius * 2 + player->height_diff
     };
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
     //DrawCircleV(hb_pos, player->hbradius, color);
@@ -299,7 +300,6 @@ static Vector2 predict_ballpos(Ball *ball, float dt)
     return pos;
 }
 
-#include <stdio.h>
 static void update_bot(Player *player, PlayerInputResult *ires, Game *game, float dt)
 {
     static enum {
@@ -314,17 +314,13 @@ static void update_bot(Player *player, PlayerInputResult *ires, Game *game, floa
     Vector2 pred_ballpos = predict_ballpos(&game->ball, dt);
     Vector2 player_pos = ascir(player->p).pos;
     if (vec2dist(ascir(player->p).pos, pred_ballpos) < 100) {
-        puts("IDLE");
         state = IDLE;
     } else if (vec2dist(ascir(player->p).pos, pred_ballpos) < 250) {
-        puts("ATTACK");
         state = ATTACK;
     } else if (ball->p.velo.x > 0) {
-        puts("DEFEND");
         state = DEFEND;
     } else if (0 && ball->p.velo.x > 0) {
     } else {
-        puts("CHASE");
         state = CHASE;
     }
 
@@ -408,6 +404,17 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
 
     ascir(player->p).pos.x += player->p.velo.x * dt;
     ascir(player->p).pos.y += player->p.velo.y * dt;
+
+    /* breath */
+    player->breath += dt;
+    if (player->breath > PI) {
+        player->breath = 0;
+    }
+    if (player->dir.x != 0 || !player->p.on_ground) {
+        if (fabs(player->height_diff) < 1.0f) {
+            player->breath = 0;
+        }
+    }
 
     /* EGG */
     static const float change_size_rate = 250.0f;
