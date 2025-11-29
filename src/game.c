@@ -89,6 +89,7 @@ static PlayerControl control_right = { /* right */
     }
 };
 
+static RenderTexture2D rtex;
 static Texture2D bg_tex;
 static Texture2D front_tex;
 static Texture2D player_tex;
@@ -734,6 +735,7 @@ static void draw_gameui(Game *game)
 
 void init_game(Game *game)
 {
+    rtex = LoadRenderTexture(WIDTH, HEIGHT);
     srand(time(NULL));
     *game = (Game) {0};
     /* game */
@@ -770,22 +772,28 @@ void init_game(Game *game)
 
 void draw_game(Game *game)
 {
-    BeginMode2D(game->cam);
-        DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
-        if (game_onmenu(game)) {
-            DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
-            draw_menu(game);
-            return;
-        }
-        //draw_recs(game->bars, 2);
-        draw_player(&game->players[0], player_tex);
-        draw_player(&game->players[1], player_tex);
-        draw_ball(&game->ball, ball_tex);
-        //draw_recs(game->borders, 4);
-        DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
-    EndMode2D();
+    BeginTextureMode(rtex);
+        ClearBackground(WHITE);
+        BeginMode2D(game->cam);
+            DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
+            if (game_onmenu(game)) {
+                DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
+                draw_menu(game);
+            } else {
+                //draw_recs(game->bars, 2);
+                draw_player(&game->players[0], player_tex);
+                draw_player(&game->players[1], player_tex);
+                draw_ball(&game->ball, ball_tex);
+                //draw_recs(game->borders, 4);
+                DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
+            }
+        EndMode2D();
+    EndTextureMode();
 
-    draw_gameui(game);
+    DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
+
+    if (game_isrun(game))
+        draw_gameui(game);
 }
 
 void update_game(Game *game, float dt)
