@@ -18,7 +18,6 @@ int main(void)
         update_game(&game, dt);
 
         BeginDrawing();
-            ClearBackground(BLACK);
             draw_game(&game);
         EndDrawing();
     }
