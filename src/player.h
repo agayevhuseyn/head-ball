@@ -57,6 +57,7 @@ typedef struct {
     int smashing_ground;
     /* bomb */
     int stunned;
+    float stun_time;
     /* breath */
     float breath;
     float height_diff;

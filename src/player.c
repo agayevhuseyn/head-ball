@@ -15,13 +15,18 @@
 #define POWERSHOT_BOUNCE 3
 #define DASH_SPEED_MULT 7.0f
 #define SUMO_SMASH_MULTIPLIER 1.5f
+#define STUN_MAX_TIME 3.0f
 
 #define PART_SIZE 128
 static Particle ps[2][PART_SIZE] = {0};
 
+static Shader stunshader;
+
 void init_player(Player *player, int index, int side, Vector2 pos,
                  float radius, float speed, float jmp_force)
 {
+    if (stunshader.id == 0)
+        stunshader = LoadShader(NULL, "shaders/stun.frag");
     /* reset particles */
     memset(ps[side], 0, sizeof(ps[side]));
     /* player */
@@ -132,7 +137,25 @@ void draw_player(Player *player, Texture2D sheet)
     float shadow_intense = 1.0f - -height / GROUND;
     DrawEllipse(ascir(player->p).pos.x, GROUND + 10, radius, radius/16, color(0, 0, 0, 120 * shadow_intense));
     draw_particles(ps[player->side], PART_SIZE);
+    if (player->stunned) {
+        BeginShaderMode(stunshader);
+    }
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);
+    if (player->stunned) {
+        EndShaderMode();
+    }
+
+    if (player->stunned) {
+        float t = player->stun_time;
+        for (int i = 0; i < 3; i++) {
+            float a = t * 3.0f + i * (PI*2/3);
+            Vector2 pos = {
+                ascir(player->p).pos.x + cos(a) * 40.0f,
+                ascir(player->p).pos.y - radius + sin(a) * 8.0f
+            };
+            DrawRectangleV(pos, vec2(16, 16), YELLOW);
+        }
+    }
 }
 
 static void desuper(Player *player, Game *game);
@@ -360,8 +383,15 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
     if (player->is_bot) {
         ires = (PlayerInputResult) {0};
         update_bot(player, &ires, game, dt);
-    } else if (player->stunned) {
-        ires = (PlayerInputResult) {0};
+    }
+    if (player->stunned) {
+        player->stun_time += dt;
+        if (player->stun_time >= STUN_MAX_TIME) {
+            player->stunned = false;
+            player->stun_time = 0;
+        } else {
+            ires = (PlayerInputResult) {0};
+        }
     }
 
     player->dir.x = player->revctrl ? -ires.iaxis.x : ires.iaxis.x;

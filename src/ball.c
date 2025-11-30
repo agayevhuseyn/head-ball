@@ -12,8 +12,24 @@
 #define PART_SIZE 256
 static Particle ps[PART_SIZE] = {0};
 
+static Shader bombshader;
+static struct {
+    int time;
+    int maxtime;
+} bombshader_fields;
+
+#define BOMB_MAX_TIME 10.0f
+#define BOMB_MIN_TIME 5.0f
+#define BOMB_EFFECT_RADIUS 192.0f
+#define bomb_time_rand() ((rand() % (int)(BOMB_MAX_TIME - BOMB_MIN_TIME)) + BOMB_MIN_TIME)
+
 void init_ball(Ball *ball, int type, Vector2 pos, float radius)
 {
+    if (bombshader.id == 0) {
+        bombshader = LoadShader(NULL, "shaders/bomb.frag");
+        bombshader_fields.time = GetShaderLocation(bombshader, "time");
+        bombshader_fields.maxtime = GetShaderLocation(bombshader, "maxtime");
+    }
     memset(ps, 0, sizeof(ps));
     *ball = (Ball) {0};
     /* physics */
@@ -31,10 +47,16 @@ void init_ball(Ball *ball, int type, Vector2 pos, float radius)
     /* friction and eloss must be between 0 and 1 (inclusively) */
     switch (ball->type) {
     case BALL_SOCCER:
+        ball->p.fric = 0.01f; /* [0, 1] */
+        ball->p.mass = 14.5f;
+        ball->p.eloss = 0.25f; /* [0, 1] */
+        break;
     case BALL_BOMB:
         ball->p.fric = 0.01f; /* [0, 1] */
         ball->p.mass = 14.5f;
         ball->p.eloss = 0.25f; /* [0, 1] */
+        ball->bomb_time = 0;
+        ball->bomb_max_time = bomb_time_rand();
         break;
     case BALL_BOWLING:
         ball->p.fric = 0.05f;
@@ -65,11 +87,21 @@ void draw_ball(Ball *ball, Texture2D tex)
     draw_particles(ps, PART_SIZE);
     Rectangle src  = { BALL_SPRITE_SIZE * ball->type, 0, BALL_SPRITE_SIZE, BALL_SPRITE_SIZE };
     Rectangle dest = { ascir(ball->p).pos.x, ascir(ball->p).pos.y, radius * 2, radius * 2 };
-    DrawTexturePro(tex, src, dest, vec2(radius, radius), ball->rot, WHITE);
-    //draw_particles(ps, PART_SIZE);
+
+    
+    if (ball->type == BALL_BOMB) {
+        DrawCircleV(ascir(ball->p).pos, BOMB_EFFECT_RADIUS, color(255, 255, 255, 50));
+        SetShaderValue(bombshader, bombshader_fields.time, &ball->bomb_time, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(bombshader, bombshader_fields.maxtime, &ball->bomb_max_time, SHADER_UNIFORM_FLOAT);
+        BeginShaderMode(bombshader);
+            DrawTexturePro(tex, src, dest, vec2(radius, radius), ball->rot, WHITE);
+        EndShaderMode();
+    } else {
+        DrawTexturePro(tex, src, dest, vec2(radius, radius), ball->rot, WHITE);
+    }
 }
 
-void update_ball(Ball *ball, float dt)
+void update_ball(Ball *ball, void *gameptr, float dt)
 {
     /* FIX */
     float min_mass = 5.0f;
@@ -138,20 +170,32 @@ void update_ball(Ball *ball, float dt)
         ball->bomb_time += dt;
         if (ball->bomb_time >= ball->bomb_max_time) {
             ball->bomb_time = 0;
-            ball->bomb_max_time = 3;
+            ball->bomb_max_time = bomb_time_rand();
 
             emit_particles_rand(
                 ps,                 /* Particle *ps,  */
                 PART_SIZE,          /* int size,  */
                 PARTICLE_CIRCLE,    /* int type,  */
-                72,                  /* int needed,  */
+                80,                  /* int needed,  */
                 ascir(ball->p).pos, /* Vector2 pos,  */
                 vec2zero,         /* Vector2 dir,  */
                 700,                /* float velo,  */
-                1.2f,               /* float life,  */
+                1.5f,               /* float life,  */
                 color(240, 140, 0, 255),             /* Color c,  */
                 64 /* float psize  */
             );
+
+            Game *game = (Game*)gameptr;
+
+            for (int i = 0; i < 2; i++) {
+                if (check_cir_coll(
+                        (Circle) { ascir(ball->p).pos, BOMB_EFFECT_RADIUS },
+                        ascir(game->players[i].p),
+                        NULL, NULL)
+                ) {
+                    game->players[i].stunned = true;
+                }
+            }
         }
     }
 

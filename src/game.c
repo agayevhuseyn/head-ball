@@ -905,7 +905,7 @@ void update_game(Game *game, float dt)
         check_cir_coll(ascir(ball->p), ascir(a->p), NULL, NULL) &&
         check_cir_coll(ascir(ball->p), ascir(b->p), NULL, NULL);
 
-    update_ball(&game->ball, dt);
+    update_ball(&game->ball, game, dt);
 
     handle_coll(&a->p, &b->p, dt);
     ball->hitleft_trail -= handle_coll(&ball->p, &a->p, dt);

@@ -37,6 +37,6 @@ typedef struct {
 
 void init_ball(Ball *ball, int type, Vector2 pos, float radius);
 void draw_ball(Ball *ball, Texture2D tex);
-void update_ball(Ball *ball, float dt);
+void update_ball(Ball *ball, void *gameptr, float dt);
 
 #endif
