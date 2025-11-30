@@ -1,5 +1,4 @@
 *.aseprite
-shaders/
 abuild.sh
 android/
 /include/
