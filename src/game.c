@@ -96,6 +96,7 @@ static Texture2D player_tex;
 static Texture2D ball_tex;
 static int left_score = 0, right_score = 0;
 static int show_fps = false;
+static PlayerInputResult lres, rres;
 
 #define BUTTON_SIZE_WIDE vec2(256, 64)
 #define BUTTON_GAP 96
@@ -525,9 +526,6 @@ static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
 
 static void draw_menu(Game *game)
 {
-    PlayerInputResult lres = get_playerinputresult(&game->controls[PLAYER_SIDE_LEFT]);
-    PlayerInputResult rres = get_playerinputresult(&game->controls[PLAYER_SIDE_RIGHT]);
-
     if (menu_ismain(game)) {
         draw_main_buttons(game, &lres, &rres);
     } else if (menu_issettings(game)) {
@@ -798,8 +796,8 @@ void draw_game(Game *game)
 
 void update_game(Game *game, float dt)
 {
-    PlayerInputResult lres = get_playerinputresult(&game->controls[PLAYER_SIDE_LEFT]);
-    PlayerInputResult rres = get_playerinputresult(&game->controls[PLAYER_SIDE_RIGHT]);
+    lres = get_playerinputresult(&game->controls[PLAYER_SIDE_LEFT]);
+    rres = get_playerinputresult(&game->controls[PLAYER_SIDE_RIGHT]);
     int quit = IsKeyPressed(KEY_ESCAPE) || lres.back_btn || rres.back_btn;
 
     if (quit) {
