@@ -61,6 +61,9 @@ typedef struct {
     /* breath */
     float breath;
     float height_diff;
+    /* jump effect */
+    int dust_effect;
+    float jump_sqz;
 } Player;
 
 void init_player(Player *player, int index, int side, Vector2 pos, float radius, float speed, float jmp_force);

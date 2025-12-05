@@ -397,9 +397,30 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
 
     player->dir.x = player->revctrl ? -ires.iaxis.x : ires.iaxis.x;
 
-    if (ires.press_axis.y < 0 && player->p.on_ground) {
-        player->p.on_ground = false;
-        player->p.velo.y = player->jmp_force;
+    if (player->p.on_ground) {
+        if (player->dust_effect) {
+            player->dust_effect = false;
+
+            Vector2 pos = ascir(player->p).pos;
+            float radius = ascir(player->p).radius;
+            emit_particles_rand(
+                ps[player->side], /* Particle *ps,  */
+                PART_SIZE, /* int size,  */
+                PARTICLE_SQUARE, /* int type,  */
+                48, /* int needed,  */
+                vec2(pos.x, pos.y + radius), /* Vector2 pos,  */
+                vec2zero, /* Vector2 dir,  */
+                200, /* float velo,  */
+                0.4f, /* float life,  */
+                color(240, 240, 240, 50), /* Color c,  */
+                8.0f /* float psize  */
+            );
+        }
+        if (ires.press_axis.y < 0) {
+            player->p.velo.y = player->jmp_force;
+        }
+    } else if (player->p.velo.y > 50.0f) {
+        player->dust_effect = true;
     }
 
     if (ires.super_btn)
@@ -510,7 +531,7 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
             color(ORANGE.r - 15, ORANGE.g, ORANGE.b, ORANGE.a), /* Color c,  */
             ascir(player->p).radius /* float psize  */
         );
-    }
+    } 
 
     /* PARTICLES */
     update_particles(ps[player->side], PART_SIZE, dt);
