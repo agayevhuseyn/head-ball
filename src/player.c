@@ -138,6 +138,7 @@ void draw_player(Player *player, Texture2D sheet)
     DrawEllipse(ascir(player->p).pos.x, GROUND + 10, radius, radius/16, color(0, 0, 0, 120 * shadow_intense));
     draw_particles(ps[player->side], PART_SIZE);
     if (player->stunned) {
+        SetShaderValue(stunshader, GetShaderLocation(stunshader, "time"), &player->stun_time, SHADER_UNIFORM_FLOAT);
         BeginShaderMode(stunshader);
     }
     DrawTexturePro(sheet, src, dest, vec2(0, 0), 0, WHITE);

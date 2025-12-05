@@ -154,7 +154,7 @@ void update_ball(Ball *ball, void *gameptr, float dt)
         float rx = offset.x * cosx - offset.y * siny;
         float ry = offset.x * siny + offset.y * cosx;
         Vector2 actpos = vec2(ascir(ball->p).pos.x + rx, ascir(ball->p).pos.y + ry);
-         emit_particles_rand(
+        emit_particles_rand(
             ps,                 /* Particle *ps,  */
             PART_SIZE,          /* int size,  */
             PARTICLE_SQUARE,    /* int type,  */
@@ -167,6 +167,10 @@ void update_ball(Ball *ball, void *gameptr, float dt)
             8 /* float psize  */
         );
 
+#if DEBUG
+        if (IsKeyPressed(KEY_F9))
+            ball->bomb_time = ball->bomb_max_time;
+#endif
         ball->bomb_time += dt;
         if (ball->bomb_time >= ball->bomb_max_time) {
             ball->bomb_time = 0;
@@ -186,6 +190,8 @@ void update_ball(Ball *ball, void *gameptr, float dt)
             );
 
             Game *game = (Game*)gameptr;
+
+            game->shaking = true;
 
             for (int i = 0; i < 2; i++) {
                 if (check_cir_coll(

@@ -48,6 +48,9 @@
 #define PLAYER_LEFT_START_POS  vec2(256, 400)
 #define PLAYER_RIGHT_START_POS vec2(1024, 400)
 
+/* CAMERA */
+#define CAM_BASE_OFFSET vec2(WIDTH / 2.0f, HEIGHT / 2.0f)
+
 /* CONTROLS */
 static PlayerControl control_left = { /* left */
     .gamepad_id = PLAYER_SIDE_LEFT,
@@ -446,7 +449,7 @@ static void cam_posclamp(Camera2D *cam, Vector2 pos)
 static void cam_reset(Camera2D *cam)
 {
     *cam = (Camera2D) {
-        .offset = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
+        .offset = CAM_BASE_OFFSET,
         .rotation = 0,
         .target = vec2(WIDTH / 2.0f, HEIGHT / 2.0f),
         .zoom = 1.0f,
@@ -487,22 +490,22 @@ static void reset_game(Game *game)
     b->p.velo = vec2zero;
 }
 
-static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
+static int move_picker(int pick, int dx, int dy, int cols, int rows)
 {
     int col = pick % cols;
     int row = pick / cols;
-    int other_col = other % cols;
-    int other_row = other / cols;
+    if (pick == -1)
+        col = row = -1;
 
     int new_col = col + dx;
     int new_row = row + dy;
 
-    /*
-    if (new_col == other_col && new_row == other_row) {
-        new_col += dx;
-        new_row += dy;
+    if (pick == -1 && new_col == -1) {
+        new_col = 0;
     }
-    */
+    if (pick == -1 && new_row == -1) {
+        new_row = 0;
+    }
 
     if (new_col < 0)
         new_col = cols - 1;
@@ -513,13 +516,6 @@ static int move_picker(int pick, int dx, int dy, int other, int cols, int rows)
         new_row = rows - 1;
     else if (new_row > rows - 1)
         new_row = 0;
-
-    /*
-    if (new_col == other_col && new_row == other_row) {
-        new_col += dx;
-        new_row += dy;
-    }
-    */
 
     return new_col + new_row * cols;
 }
@@ -595,8 +591,8 @@ static void draw_menu(Game *game)
         int *left_pick  = &game->char_picks[PLAYER_SIDE_LEFT];
         int *right_pick = &game->char_picks[PLAYER_SIDE_RIGHT];
 
-        static const int cols = 4;
-        static const int rows = 2;
+        static const int cols = 2;
+        static const int rows = 4;
 
         int left_x  = lres.press_axis.x;
         int left_y  = lres.press_axis.y;
@@ -609,12 +605,15 @@ static void draw_menu(Game *game)
         }
 
         if (left_x || left_y)
-            *left_pick  = move_picker(*left_pick, left_x, left_y, *right_pick, cols, rows);
+            *left_pick  = move_picker(*left_pick, left_x, left_y, cols, rows);
         if (right_x || right_y)
-            *right_pick = move_picker(*right_pick, right_x, right_y, *left_pick, cols, rows);
+            *right_pick = move_picker(*right_pick, right_x, right_y, cols, rows);
         
-        Vector2 size = vec2(256, 256);
-        Vector2 pos  = vec2(80, (HEIGHT - size.y * 2) / 2);
+        static const float gap = 32;
+        Vector2 size = vec2(128, 128);
+        Vector2 start_pos  = vec2(WIDTH / 2.0f - size.x - gap / 2.0f, gap);
+        DrawLine(WIDTH / 2.0f, 0, WIDTH / 2.0f, HEIGHT, RED);
+        Vector2 pos = start_pos;
         for (int i = 0; i < PLAYER_SIZE; i++) {
             Rectangle src  = {
                 PLAYER_SPRITE_SIZE * i,
@@ -652,10 +651,45 @@ static void draw_menu(Game *game)
                 DrawRectangleRec(frame, c);
             }
             DrawTexturePro(player_tex, src, dest, vec2(0, 0), 0, WHITE);
-            pos.x += size.x + 32;
+            pos.x += size.x + gap;
             if ((i + 1) % cols == 0) {
-                pos.x = 80;
-                pos.y += size.y + 32;
+                pos.x = start_pos.x;
+                pos.y += size.y + gap;
+            }
+
+            Vector2 bsize = vec2(392, 640);
+            if (*left_pick == i) {
+                Rectangle brec = rec(32, 32, bsize.x, bsize.y);
+                DrawRectangleRec(brec, WHITE);
+                DrawTexturePro(player_tex,
+                               rec(
+                                   PLAYER_SPRITE_SIZE * i,
+                                   0,
+                                   PLAYER_SPRITE_SIZE,
+                                   PLAYER_SPRITE_SIZE
+                               ),
+                               rec(brec.x, brec.y, brec.width, brec.width),
+                               vec2zero,
+                               0,
+                               WHITE
+                              );
+
+            }
+            if (*right_pick == i) {
+                Rectangle brec = rec(WIDTH - bsize.x - 32, 32, bsize.x, bsize.y);
+                DrawRectangleRec(brec, WHITE);
+                DrawTexturePro(player_tex,
+                               rec(
+                                   PLAYER_SPRITE_SIZE * i,
+                                   0,
+                                   -PLAYER_SPRITE_SIZE,
+                                   PLAYER_SPRITE_SIZE
+                               ),
+                               rec(brec.x, brec.y, brec.width, brec.width),
+                               vec2zero,
+                               0,
+                               WHITE
+                              );
             }
         }
 
@@ -770,7 +804,7 @@ void init_game(Game *game)
 
 void draw_game(Game *game)
 {
-    BeginTextureMode(rtex);
+    //BeginTextureMode(rtex);
         ClearBackground(WHITE);
         BeginMode2D(game->cam);
             DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
@@ -786,9 +820,9 @@ void draw_game(Game *game)
                 DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
             }
         EndMode2D();
-    EndTextureMode();
+    //EndTextureMode();
 
-    DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
+    //DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
 
     if (game_isrun(game))
         draw_gameui(game);
@@ -889,6 +923,17 @@ void update_game(Game *game, float dt)
         if ((game->wait_time += dt) > GAME_ROUND_MAX_WAIT_TIME) {
             game->resetting_ball = false;
             game->wait_time = 0;
+        }
+    }
+    if (game->shaking) {
+        game->shake_time += dt;
+        static const Vector2 max_offset = vec2(16, 8);
+        game->cam.offset.x = CAM_BASE_OFFSET.x + sinf(game->shake_time * 80) * max_offset.x;
+        game->cam.offset.y = CAM_BASE_OFFSET.y + sinf(game->shake_time * 60) * max_offset.y;
+        if (game->shake_time >= SHAKE_MAX_TIME) {
+            game->shake_time = 0;
+            game->shaking = false;
+            cam_reset(&game->cam);
         }
     }
 

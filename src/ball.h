@@ -11,6 +11,7 @@
 #define BALL_GAME_SIZE 32 /* radius */
 #define BALL_BOMB_ROPE_POS vec2(1, 4) /* in sprite */
 // 1, 4
+#define SHAKE_MAX_TIME 0.35f
 
 enum {
     BALL_SOCCER,

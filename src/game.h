@@ -43,6 +43,9 @@ typedef struct {
     float wait_time;
     int cam_following_ball;
     int resetting_ball;
+    /* shake */
+    int shaking;
+    float shake_time;
 } Game;
 
 void init_game(Game *game);
