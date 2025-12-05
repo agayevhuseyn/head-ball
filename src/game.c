@@ -101,6 +101,31 @@ static int left_score = 0, right_score = 0;
 static int show_fps = false;
 static PlayerInputResult lres, rres;
 
+typedef struct {
+    const char *name;
+    const char *info;
+    const char *super;
+} CharInfoBox;
+
+static CharInfoBox char_info_boxes[PLAYER_SIZE] = {
+    [PLAYER_BRUNETTE] = {
+    },
+    [PLAYER_BLACK] = {
+    },
+    [PLAYER_BALD] = {
+    },
+    [PLAYER_SUMO] = {
+    },
+    [PLAYER_MATRIX] = {
+    },
+    [PLAYER_HACKER] = {
+    },
+    [PLAYER_PANDA] = {
+    },
+    [PLAYER_ALIEN] = {
+    },
+};
+
 #define BUTTON_SIZE_WIDE vec2(256, 64)
 #define BUTTON_GAP 96
 enum {
@@ -673,7 +698,8 @@ static void draw_menu(Game *game)
                                0,
                                WHITE
                               );
-
+                Vector2 tpos = vec2(brec.x, brec.y + brec.width);
+                draw_text(char_info_boxes[i].name, tpos, 32, BLACK);
             }
             if (*right_pick == i) {
                 Rectangle brec = rec(WIDTH - bsize.x - 32, 32, bsize.x, bsize.y);
@@ -782,7 +808,7 @@ void init_game(Game *game)
     cam_reset(&game->cam);
     /* textures */
     load_font("assets/joystixmono.otf");
-    bg_tex = LoadTexture("assets/bg.png");
+    bg_tex = LoadTexture("assets/street.png");
     front_tex = LoadTexture("assets/front.png");
     player_tex = LoadTexture("assets/player.png");
     ball_tex = LoadTexture("assets/ball.png");
@@ -804,7 +830,7 @@ void init_game(Game *game)
 
 void draw_game(Game *game)
 {
-    //BeginTextureMode(rtex);
+    BeginTextureMode(rtex);
         ClearBackground(WHITE);
         BeginMode2D(game->cam);
             DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
@@ -820,12 +846,12 @@ void draw_game(Game *game)
                 DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
             }
         EndMode2D();
-    //EndTextureMode();
 
-    //DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
+        if (game_isrun(game))
+            draw_gameui(game);
+    EndTextureMode();
 
-    if (game_isrun(game))
-        draw_gameui(game);
+    DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
 }
 
 void update_game(Game *game, float dt)
