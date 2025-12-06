@@ -4,10 +4,12 @@
 
 int main(void)
 {
-    SetTraceLogLevel(LOG_WARNING);
+//    SetTraceLogLevel(LOG_WARNING);
     InitWindow(WIDTH, HEIGHT, TITLE);
     SetExitKey(KEY_NULL);
     SetTargetFPS(FPS);
+
+    InitAudioDevice();
 
     Game game;
     init_game(&game);
@@ -21,6 +23,8 @@ int main(void)
             draw_game(&game);
         EndDrawing();
     }
+
+    CloseAudioDevice();
 
     // close game
     CloseWindow();

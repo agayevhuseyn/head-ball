@@ -93,8 +93,6 @@ static PlayerControl control_right = { /* right */
 };
 
 static RenderTexture2D rtex;
-static Texture2D bg_tex;
-static Texture2D front_tex;
 static Texture2D player_tex;
 static Texture2D ball_tex;
 static int left_score = 0, right_score = 0;
@@ -796,6 +794,7 @@ void init_game(Game *game)
     rtex = LoadRenderTexture(WIDTH, HEIGHT);
     srand(time(NULL));
     *game = (Game) {0};
+    init_soundmanager(&game->sm);
     /* game */
     game->game_state = GAME_STATE_MENU;
     /* menu */
@@ -808,8 +807,7 @@ void init_game(Game *game)
     cam_reset(&game->cam);
     /* textures */
     load_font("assets/joystixmono.otf");
-    bg_tex = LoadTexture("assets/street.png");
-    front_tex = LoadTexture("assets/front.png");
+    init_map(&game->map);
     player_tex = LoadTexture("assets/player.png");
     ball_tex = LoadTexture("assets/ball.png");
     /* ball */
@@ -830,12 +828,24 @@ void init_game(Game *game)
 
 void draw_game(Game *game)
 {
+    if (IsKeyPressed(KEY_ONE)) {
+        game->map.type = MAP_STREET;
+    } else if (IsKeyPressed(KEY_TWO)) {
+        game->map.type = MAP_BEACH;
+    }
     BeginTextureMode(rtex);
         ClearBackground(WHITE);
         BeginMode2D(game->cam);
-            DrawTextureEx(bg_tex, vec2(0, 0), 0, SCALE, WHITE);
+            switch (game->map.type) {
+            case MAP_STREET:
+                DrawTextureEx(game->map.street.bg, vec2(0, 0), 0, SCALE, WHITE);
+                break;
+            case MAP_BEACH:
+                DrawTextureEx(game->map.beach.bg, vec2(0, 0), 0, SCALE, WHITE);
+                break;
+            }
             if (game_onmenu(game)) {
-                DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
+                DrawTextureEx(game->map.front, vec2(0, 0), 0, SCALE, WHITE);
                 draw_menu(game);
             } else {
                 //draw_recs(game->bars, 2);
@@ -843,7 +853,14 @@ void draw_game(Game *game)
                 draw_player(&game->players[1], player_tex);
                 draw_ball(&game->ball, ball_tex);
                 //draw_recs(game->borders, 4);
-                DrawTextureEx(front_tex, vec2(0, 0), 0, SCALE, WHITE);
+                DrawTextureEx(game->map.front, vec2(0, 0), 0, SCALE, WHITE);
+                switch (game->map.type) {
+                case MAP_STREET:
+                    break;
+                case MAP_BEACH:
+                    DrawTextureEx(game->map.beach.tree, vec2(0, 0), 0, SCALE, WHITE);
+                    break;
+                }
             }
         EndMode2D();
 
@@ -852,6 +869,7 @@ void draw_game(Game *game)
     EndTextureMode();
 
     DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
+    //DrawTexturePro(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), rec(0, 0, 1920, 1080), vec2(0, 0), 0, WHITE);
 }
 
 void update_game(Game *game, float dt)
@@ -985,6 +1003,7 @@ void update_game(Game *game, float dt)
         ball->p.velo.x = clamp(ball->p.velo.x, -100, 100);
     }
 
+    /* FIX */
     a->p.on_ground = b->p.on_ground = 0;
     for (int i = 0; i < 4; i++) {
         ball->hitleft_trail -= handle_coll(&ball->p, &game->borders[i], dt);
@@ -994,8 +1013,11 @@ void update_game(Game *game, float dt)
 
     int hit_bar = false;
     for (int i = 0; i < 2; i++) {
-        if (!hit_bar) {
-            hit_bar = handle_coll(&ball->p, &game->bars[i], dt);
+        int res = handle_coll(&ball->p, &game->bars[i], dt);
+        if (res) {
+            if (vec2len(ball->p.velo) > 20.0f)
+                play_hitbar(&game->sm);
+            hit_bar = res;
         }
         handle_coll(&a->p, &game->bars[i], dt);
         handle_coll(&b->p, &game->bars[i], dt);

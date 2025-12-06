@@ -124,8 +124,8 @@ void draw_player(Player *player, Texture2D sheet)
         PLAYER_SPRITE_SIZE
     };
     float radius = ascir(player->p).radius;
-    float scale_x = 1.0f + player->squash * 2;
-    float scale_y = 1.0f - player->squash;
+    float scale_x = 1.0f + player->squash * 1;
+    float scale_y = 1.0f - player->squash * 2;
     Vector2 size = vec2(radius * 2.0f * scale_x, radius * 2.0f * scale_y + player->height_diff);
     Rectangle dest = {
         ascir(player->p).pos.x - radius * scale_x,

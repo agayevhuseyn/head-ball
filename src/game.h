@@ -2,6 +2,8 @@
 #include "player.h"
 #include "ball.h"
 #include "input.h"
+#include "sound.h"
+#include "map.h"
 
 typedef enum {
     GAME_STATE_MENU,
@@ -34,6 +36,8 @@ typedef struct {
     PObject bars[2];
     GameState game_state;
     MenuState menu_state;
+    SoundManager sm;
+    Map map;
     int game_mode; /* single or multiplayer */
     /* picking ball state */
     int ball_pick;
