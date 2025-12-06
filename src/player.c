@@ -124,18 +124,20 @@ void draw_player(Player *player, Texture2D sheet)
         PLAYER_SPRITE_SIZE
     };
     float radius = ascir(player->p).radius;
-    player->height_diff = sinf(player->breath * 4) * 8;
+    float scale_x = 1.0f + player->squash * 2;
+    float scale_y = 1.0f - player->squash;
+    Vector2 size = vec2(radius * 2.0f * scale_x, radius * 2.0f * scale_y + player->height_diff);
     Rectangle dest = {
-        ascir(player->p).pos.x - radius,
-        ascir(player->p).pos.y - radius - player->height_diff,
-        radius * 2,
-        radius * 2 + player->height_diff
+        ascir(player->p).pos.x - radius * scale_x,
+        ascir(player->p).pos.y - radius * scale_y - player->height_diff,
+        size.x,
+        size.y
     };
     Vector2 hb_pos = Vector2Add(ascir(player->p).pos, player->hboffset);
     //DrawCircleV(hb_pos, player->hbradius, color);
     float height = ascir(player->p).pos.y - GROUND;
     float shadow_intense = 1.0f - -height / GROUND;
-    DrawEllipse(ascir(player->p).pos.x, GROUND + 10, radius, radius/16, color(0, 0, 0, 120 * shadow_intense));
+    DrawEllipse(ascir(player->p).pos.x, GROUND + 10, size.x / 2.0f, radius/16, color(0, 0, 0, 120 * shadow_intense));
     draw_particles(ps[player->side], PART_SIZE);
     if (player->stunned) {
         SetShaderValue(stunshader, GetShaderLocation(stunshader, "time"), &player->stun_time, SHADER_UNIFORM_FLOAT);
@@ -398,8 +400,8 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
     player->dir.x = player->revctrl ? -ires.iaxis.x : ires.iaxis.x;
 
     if (player->p.on_ground) {
-        if (player->dust_effect) {
-            player->dust_effect = false;
+        if (player->landed) {
+            player->landed = false;
 
             Vector2 pos = ascir(player->p).pos;
             float radius = ascir(player->p).radius;
@@ -420,7 +422,7 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
             player->p.velo.y = player->jmp_force;
         }
     } else if (player->p.velo.y > 50.0f) {
-        player->dust_effect = true;
+        player->landed = true;
     }
 
     if (ires.super_btn)
@@ -440,6 +442,10 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
 
     player->p.velo.x = player->dir.x * player->speed;
     player->p.velo.y += GRAVITY * dt;
+
+    /* jump squash */
+    float target = clamp(player->p.velo.y / (GRAVITY), -0.1f, 0.1f);
+    player->squash = lerp(player->squash, target, 8.0f * dt);
 
     if (player->index == PLAYER_BRUNETTE && player->super.being_used) {
         player->p.velo.x = player->dash_dir * player->speed * DASH_SPEED_MULT;
@@ -471,6 +477,7 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
             player->breath = 0;
         }
     }
+    player->height_diff = sinf(player->breath * 4) * 8;
 
     /* EGG */
     static const float change_size_rate = 250.0f;
