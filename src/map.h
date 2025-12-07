@@ -14,12 +14,16 @@ typedef struct {
     MapType type;
     struct {
         Texture2D bg;
+        float time;
         float frame_time;
+        int cur_frame;
+        int max_frame;
     } street;
     struct {
         Texture2D bg;
         Texture2D tree;
     } beach;
+    Texture2D goal;
     Texture2D front;
 } Map;
 

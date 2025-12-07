@@ -33,9 +33,9 @@
 #define mode_ismulti(g)  ((g)->game_mode == GAME_MODE_MULTI)
 
 /* BAR */
-#define BAR_WIDTH  180
-#define BAR_HEIGHT 36
-#define BAR_POS_Y  320
+#define BAR_WIDTH  132
+#define BAR_HEIGHT 24
+#define BAR_POS_Y  292
 
 #define BOR_THICK 64
 
@@ -635,7 +635,7 @@ static void draw_menu(Game *game)
         static const float gap = 32;
         Vector2 size = vec2(128, 128);
         Vector2 start_pos  = vec2(WIDTH / 2.0f - size.x - gap / 2.0f, gap);
-        DrawLine(WIDTH / 2.0f, 0, WIDTH / 2.0f, HEIGHT, RED);
+        //DrawLine(WIDTH / 2.0f, 0, WIDTH / 2.0f, HEIGHT, RED);
         Vector2 pos = start_pos;
         for (int i = 0; i < PLAYER_SIZE; i++) {
             Rectangle src  = {
@@ -828,9 +828,9 @@ void init_game(Game *game)
 
 void draw_game(Game *game)
 {
-    if (IsKeyPressed(KEY_ONE)) {
+    if (IsKeyPressed(KEY_ONE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1)) {
         game->map.type = MAP_STREET;
-    } else if (IsKeyPressed(KEY_TWO)) {
+    } else if (IsKeyPressed(KEY_TWO) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1)) {
         game->map.type = MAP_BEACH;
     }
     BeginTextureMode(rtex);
@@ -838,17 +838,20 @@ void draw_game(Game *game)
         BeginMode2D(game->cam);
             switch (game->map.type) {
             case MAP_STREET:
-                DrawTextureEx(game->map.street.bg, vec2(0, 0), 0, SCALE, WHITE);
+                //DrawTextureEx(game->map.street.bg, vec2(0, 0), 0, SCALE, WHITE);
+                DrawTexturePro(game->map.street.bg, rec(game->map.street.cur_frame * 320, 0, 320, 180), rec(0, 0, WIDTH, HEIGHT), vec2(0, 0), 0, WHITE);
                 break;
             case MAP_BEACH:
                 DrawTextureEx(game->map.beach.bg, vec2(0, 0), 0, SCALE, WHITE);
                 break;
             }
             if (game_onmenu(game)) {
+                DrawTextureEx(game->map.goal, vec2(0, 0), 0, SCALE, WHITE);
                 DrawTextureEx(game->map.front, vec2(0, 0), 0, SCALE, WHITE);
+                //DrawRectangleRec(game->bars[0].as.r, color(255, 0, 0, 100));
                 draw_menu(game);
             } else {
-                //draw_recs(game->bars, 2);
+                DrawTextureEx(game->map.goal, vec2(0, 0), 0, SCALE, WHITE);
                 draw_player(&game->players[0], player_tex);
                 draw_player(&game->players[1], player_tex);
                 draw_ball(&game->ball, ball_tex);
@@ -908,6 +911,18 @@ void update_game(Game *game, float dt)
 
     if (IsKeyPressed(KEY_F1))
         show_fps = !show_fps;
+
+    switch (game->map.type) {
+    case MAP_STREET:
+        game->map.street.time += dt;
+        if (game->map.street.time >= game->map.street.frame_time) {
+            game->map.street.time = 0.0f;
+            game->map.street.cur_frame = (game->map.street.cur_frame + 1) % game->map.street.max_frame;
+        }
+        break;
+    case MAP_BEACH:
+        break;
+    }
 
     if (game_onmenu(game)) {
         return;

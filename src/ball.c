@@ -90,7 +90,7 @@ void draw_ball(Ball *ball, Texture2D tex)
 
     
     if (ball->type == BALL_BOMB) {
-        DrawCircleV(ascir(ball->p).pos, BOMB_EFFECT_RADIUS, color(255, 255, 255, 50));
+        //DrawCircleV(ascir(ball->p).pos, BOMB_EFFECT_RADIUS, color(255, 255, 255, 50));
         SetShaderValue(bombshader, bombshader_fields.time, &ball->bomb_time, SHADER_UNIFORM_FLOAT);
         SetShaderValue(bombshader, bombshader_fields.maxtime, &ball->bomb_max_time, SHADER_UNIFORM_FLOAT);
         BeginShaderMode(bombshader);
@@ -192,6 +192,7 @@ void update_ball(Ball *ball, void *gameptr, float dt)
             Game *game = (Game*)gameptr;
 
             game->shaking = true;
+            play_bomb(&game->sm);
 
             for (int i = 0; i < 2; i++) {
                 if (check_cir_coll(

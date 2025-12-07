@@ -420,6 +420,7 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
         }
         if (ires.press_axis.y < 0) {
             player->p.velo.y = player->jmp_force;
+            play_jump(&game->sm);
         }
     } else if (player->p.velo.y > 50.0f) {
         player->landed = true;
@@ -432,11 +433,21 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
     player->hbradius = clamp(HBRADIUS * fabs(game->ball.p.velo.x) / 700, HBRADIUS, 100);
     if (check_cir_coll(ascirp(&game->ball.p), (Circle) { hb_pos, player->hbradius }, NULL, NULL)) {
         static const float velo = 1500;
+        int kick = false;
+        int powershot = player->powershot;
         if (ires.strhit_btn) {
+            kick = true;
             hit_straight(&game->ball, velo, &player->powershot, player->side);
         }
         if (ires.uphit_btn) {
+            kick = true;
             hit_diagonal(&game->ball, velo, &player->powershot, player->side);
+        }
+
+        if (kick) {
+            play_kick(&game->sm);
+            if (powershot)
+                play_fire(&game->sm);
         }
     }
 
