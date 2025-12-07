@@ -1,0 +1,37 @@
+name: Build Game
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies (Linux + Windows cross-compiler)
+      run: |
+        sudo apt update
+        sudo apt install -y gcc make
+        sudo apt install -y mingw-w64   # lets your script compile --windows
+
+    - name: Make build.sh executable
+      run: chmod +x ./build.sh
+
+    - name: Build Linux version
+      run: ./build.sh
+
+    - name: Build Windows version
+      run: ./build.sh --windows
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: builds
+        path: |
+          game
+          game.exe
