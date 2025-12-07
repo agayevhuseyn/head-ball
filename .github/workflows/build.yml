@@ -19,11 +19,8 @@ jobs:
         sudo apt install -y gcc make
         sudo apt install -y mingw-w64   # lets your script compile --windows
 
-    - name: Make build.sh executable
-      run: chmod +x ./build.sh
-
     - name: Build Linux version
-      run: ./build.sh
+      run: ./build.sh --static
 
     - name: Build Windows version
       run: ./build.sh --windows
