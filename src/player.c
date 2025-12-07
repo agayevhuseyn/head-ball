@@ -446,8 +446,10 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
 
         if (kick) {
             play_kick(&game->sm);
-            if (powershot)
+            if (powershot) {
+                game->ball.bomb_time = game->ball.bomb_max_time;
                 play_fire(&game->sm);
+            }
         }
     }
 
