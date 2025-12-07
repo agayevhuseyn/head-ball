@@ -871,8 +871,8 @@ void draw_game(Game *game)
             draw_gameui(game);
     EndTextureMode();
 
-    DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
-    //DrawTexturePro(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), rec(0, 0, 1920, 1080), vec2(0, 0), 0, WHITE);
+    //DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
+    DrawTexturePro(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), rec(0, 0, GetScreenWidth(), GetScreenHeight()), vec2(0, 0), 0, WHITE);
 }
 
 void update_game(Game *game, float dt)
@@ -911,6 +911,8 @@ void update_game(Game *game, float dt)
 
     if (IsKeyPressed(KEY_F1))
         show_fps = !show_fps;
+    if (IsKeyPressed(KEY_F11))
+        ToggleBorderlessWindowed();
 
     switch (game->map.type) {
     case MAP_STREET:
