@@ -911,8 +911,20 @@ void update_game(Game *game, float dt)
 
     if (IsKeyPressed(KEY_F1))
         show_fps = !show_fps;
-    if (IsKeyPressed(KEY_F11))
-        ToggleBorderlessWindowed();
+    if (IsKeyPressed(KEY_F11)) {
+        static int fullscreen = false;
+        int width = GetMonitorWidth(0);
+        int height = GetMonitorHeight(0);
+        if (!fullscreen) {
+            SetWindowSize(width, height);
+            SetWindowPosition(0, 0);
+        } else {
+            SetWindowSize(WIDTH, HEIGHT);
+            SetWindowPosition((width - WIDTH) / 2.0f, (height - HEIGHT) / 2.0f);
+        }
+
+        fullscreen = !fullscreen;
+    }
 
     switch (game->map.type) {
     case MAP_STREET:
@@ -959,6 +971,7 @@ void update_game(Game *game, float dt)
 
     if (scored) {
         game->cam_following_ball = true;
+        play_cheer(&game->sm);
     }
 
     if (game->cam_following_ball) {
@@ -1012,8 +1025,10 @@ void update_game(Game *game, float dt)
     update_ball(&game->ball, game, dt);
 
     handle_coll(&a->p, &b->p, dt);
-    ball->hitleft_trail -= handle_coll(&ball->p, &a->p, dt);
-    ball->hitleft_trail -= handle_coll(&ball->p, &b->p, dt);
+
+    int ball_hit_times = 0;
+    ball_hit_times += handle_coll(&ball->p, &a->p, dt);
+    ball_hit_times += handle_coll(&ball->p, &b->p, dt);
 
     if (ball_push) {
         ball->p.velo.y = -70.0f * (sqrtf(a->p.mass) + sqrtf(b->p.mass));
@@ -1023,7 +1038,7 @@ void update_game(Game *game, float dt)
     /* FIX */
     a->p.on_ground = b->p.on_ground = 0;
     for (int i = 0; i < 4; i++) {
-        ball->hitleft_trail -= handle_coll(&ball->p, &game->borders[i], dt);
+        ball_hit_times += handle_coll(&ball->p, &game->borders[i], dt);
         handle_coll(&a->p, &game->borders[i], dt);
         handle_coll(&b->p, &game->borders[i], dt);
     }
@@ -1038,6 +1053,10 @@ void update_game(Game *game, float dt)
         }
         handle_coll(&a->p, &game->bars[i], dt);
         handle_coll(&b->p, &game->bars[i], dt);
+    }
+
+    if (ball_hit_times > 0) {
+        ball->hitleft_trail -= ball_hit_times;
     }
 
     if (hit_bar && fabs(ball->p.velo.x) < 4.0f) {

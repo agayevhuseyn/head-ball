@@ -225,6 +225,7 @@ static void super(Player *player, Game *game)
         Vector2 op_pos = *op_pos_p;
         *op_pos_p = ascir(player->p).pos;
         ascir(player->p).pos = op_pos;
+        play_alien(&game->sm);
         static const int needed_part = PART_SIZE / 2;
         emit_particles_rand(
             ps[player->side], /* Particle *ps,  */

@@ -103,6 +103,8 @@ void draw_ball(Ball *ball, Texture2D tex)
 
 void update_ball(Ball *ball, void *gameptr, float dt)
 {
+    Game *game = (Game*)gameptr;
+
     /* FIX */
     float min_mass = 5.0f;
     float max_mass = 100.0f;
@@ -167,6 +169,8 @@ void update_ball(Ball *ball, void *gameptr, float dt)
             8 /* float psize  */
         );
 
+        play_sizzle(&game->sm);
+
 #if DEBUG
         if (IsKeyPressed(KEY_F9))
             ball->bomb_time = ball->bomb_max_time;
@@ -188,8 +192,6 @@ void update_ball(Ball *ball, void *gameptr, float dt)
                 color(240, 140, 0, 255),             /* Color c,  */
                 64 /* float psize  */
             );
-
-            Game *game = (Game*)gameptr;
 
             game->shaking = true;
             play_bomb(&game->sm);

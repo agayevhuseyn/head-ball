@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #define WIDTH  1280
 #define HEIGHT 720
 #define TITLE  "Head Ball"
