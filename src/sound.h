@@ -11,6 +11,8 @@
 #define SOUND_KICK_SIZE 2
 #define SOUND_FIRE_SIZE 2
 #define SOUND_ALIEN_SIZE 2
+#define SOUND_EGGHEAD_SIZE 2
+#define SOUND_STUN_SIZE 2
 
 
 typedef struct {
@@ -28,6 +30,10 @@ typedef struct {
     int alien_i;
     Sound sizzle;
     Sound cheer;
+    Sound egghead[SOUND_EGGHEAD_SIZE];
+    int egghead_i;
+    Sound stun[SOUND_STUN_SIZE];
+    int stun_i;
 } SoundManager;
 
 
@@ -40,6 +46,8 @@ void play_fire(SoundManager *sm);
 void play_alien(SoundManager *sm);
 void play_sizzle(SoundManager *sm);
 void play_cheer(SoundManager *sm);
+void play_egghead(SoundManager *sm);
+void play_stun(SoundManager *sm);
 
 
 #endif /* SOUND_H */

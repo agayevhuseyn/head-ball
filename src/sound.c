@@ -27,6 +27,12 @@ void init_soundmanager(SoundManager *sm)
 
     sm->sizzle = LoadSound(DIR"sizzle.wav");
     sm->cheer = LoadSound(DIR"cheer.wav");
+
+    for (int i = 0; i < SOUND_EGGHEAD_SIZE; i++)
+        sm->egghead[i] = LoadSound(DIR"shock.wav");
+
+    for (int i = 0; i < SOUND_STUN_SIZE; i++)
+        sm->stun[i] = LoadSound(DIR"stun.wav");
 }
 
 void play_hitbar(SoundManager *sm)
@@ -77,4 +83,16 @@ void play_cheer(SoundManager *sm)
     if (!IsSoundPlaying(sm->cheer)) {
         PlaySound(sm->cheer);
     }
+}
+
+void play_egghead(SoundManager *sm)
+{
+    PlaySound(sm->egghead[sm->egghead_i]);
+    sm->egghead_i = (sm->egghead_i + 1) % SOUND_EGGHEAD_SIZE;
+}
+
+void play_stun(SoundManager *sm)
+{
+    PlaySound(sm->stun[sm->stun_i]);
+    sm->stun_i = (sm->stun_i + 1) % SOUND_STUN_SIZE;
 }

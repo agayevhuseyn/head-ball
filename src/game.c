@@ -511,6 +511,11 @@ static void reset_game(Game *game)
     a->p.velo = vec2zero;
     ascir(b->p).pos = PLAYER_RIGHT_START_POS;
     b->p.velo = vec2zero;
+
+    a->stunned = b->stunned = false;
+    a->powershot = b->powershot = false;
+    a->revctrl = b->revctrl = false;
+    a->stun_time = b->stun_time = 0.0f;
 }
 
 static int move_picker(int pick, int dx, int dy, int cols, int rows)

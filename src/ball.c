@@ -203,6 +203,7 @@ void update_ball(Ball *ball, void *gameptr, float dt)
                         NULL, NULL)
                 ) {
                     game->players[i].stunned = true;
+                    play_stun(&game->sm);
                 }
             }
         }

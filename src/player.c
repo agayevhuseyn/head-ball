@@ -194,6 +194,7 @@ static void super(Player *player, Game *game)
         player->powershot = true;
         break;
     case PLAYER_BALD:
+        play_egghead(&game->sm);
         player->changing_size = 1;
         player->target_size = PLAYER_GAME_SIZE * 2.0f;
         player->p.mass *= 6.0f;
