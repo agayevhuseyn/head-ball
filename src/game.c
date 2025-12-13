@@ -18,6 +18,7 @@
 
 #define menu_ismain(g)  ((g)->menu_state == MENU_STATE_MAIN)
 #define menu_ismode(g)  ((g)->menu_state == MENU_STATE_PLAYMODE)
+#define menu_isgamepadpick(g)  ((g)->menu_state == MENU_STATE_GAMEPAD_PICK)
 #define menu_isballpick(g)  ((g)->menu_state == MENU_STATE_BALLPICK)
 #define menu_ischarpick(g)  ((g)->menu_state == MENU_STATE_CHARPICK)
 #define menu_issettings(g)  ((g)->menu_state == MENU_STATE_SETTINGS)
@@ -51,7 +52,127 @@
 /* CAMERA */
 #define CAM_BASE_OFFSET vec2(WIDTH / 2.0f, HEIGHT / 2.0f)
 
+#define FRAME_COLOR_ALPHA 205
+
 /* CONTROLS */
+static const char *const key_names[] = {
+    [KEY_NULL]          = "NULL",
+    [KEY_BACK]          = "Back",
+    [KEY_MENU]          = "Menu",
+    [KEY_VOLUME_UP]     = "Volume Up",
+    [KEY_VOLUME_DOWN]   = "Volume Down",
+
+    [KEY_SPACE]         = "Space",
+    [KEY_APOSTROPHE]    = "'",
+    [KEY_COMMA]         = ",",
+    [KEY_MINUS]         = "-",
+    [KEY_PERIOD]        = ".",
+    [KEY_SLASH]         = "/",
+    [KEY_ZERO]          = "0",
+    [KEY_ONE]           = "1",
+    [KEY_TWO]           = "2",
+    [KEY_THREE]         = "3",
+    [KEY_FOUR]          = "4",
+    [KEY_FIVE]          = "5",
+    [KEY_SIX]           = "6",
+    [KEY_SEVEN]         = "7",
+    [KEY_EIGHT]         = "8",
+    [KEY_NINE]          = "9",
+    [KEY_SEMICOLON]     = ";",
+    [KEY_EQUAL]         = "=",
+    [KEY_A]             = "A",
+    [KEY_B]             = "B",
+    [KEY_C]             = "C",
+    [KEY_D]             = "D",
+    [KEY_E]             = "E",
+    [KEY_F]             = "F",
+    [KEY_G]             = "G",
+    [KEY_H]             = "H",
+    [KEY_I]             = "I",
+    [KEY_J]             = "J",
+    [KEY_K]             = "K",
+    [KEY_L]             = "L",
+    [KEY_M]             = "M",
+    [KEY_N]             = "N",
+    [KEY_O]             = "O",
+    [KEY_P]             = "P",
+    [KEY_Q]             = "Q",
+    [KEY_R]             = "R",
+    [KEY_S]             = "S",
+    [KEY_T]             = "T",
+    [KEY_U]             = "U",
+    [KEY_V]             = "V",
+    [KEY_W]             = "W",
+    [KEY_X]             = "X",
+    [KEY_Y]             = "Y",
+    [KEY_Z]             = "Z",
+    [KEY_LEFT_BRACKET]  = "[",
+    [KEY_BACKSLASH]     = "\\",
+    [KEY_RIGHT_BRACKET] = "]",
+    [KEY_GRAVE]         = "`",
+
+    [KEY_ESCAPE]        = "Esc",
+    [KEY_ENTER]         = "Enter",
+    [KEY_TAB]           = "Tab",
+    [KEY_BACKSPACE]     = "Backspace",
+    [KEY_INSERT]        = "Insert",
+    [KEY_DELETE]        = "Delete",
+    [KEY_RIGHT]         = "Right",
+    [KEY_LEFT]          = "Left",
+    [KEY_DOWN]          = "Down",
+    [KEY_UP]            = "Up",
+    [KEY_PAGE_UP]       = "Page Up",
+    [KEY_PAGE_DOWN]     = "Page Down",
+    [KEY_HOME]          = "Home",
+    [KEY_END]           = "End",
+    [KEY_CAPS_LOCK]     = "Caps Lock",
+    [KEY_SCROLL_LOCK]   = "Scroll Lock",
+    [KEY_NUM_LOCK]      = "Num Lock",
+    [KEY_PRINT_SCREEN]  = "Print Screen",
+    [KEY_PAUSE]         = "Pause",
+
+    [KEY_F1]            = "F1",
+    [KEY_F2]            = "F2",
+    [KEY_F3]            = "F3",
+    [KEY_F4]            = "F4",
+    [KEY_F5]            = "F5",
+    [KEY_F6]            = "F6",
+    [KEY_F7]            = "F7",
+    [KEY_F8]            = "F8",
+    [KEY_F9]            = "F9",
+    [KEY_F10]           = "F10",
+    [KEY_F11]           = "F11",
+    [KEY_F12]           = "F12",
+
+    [KEY_LEFT_SHIFT]    = "Left Shift",
+    [KEY_LEFT_CONTROL]  = "Left Ctrl",
+    [KEY_LEFT_ALT]      = "Left Alt",
+    [KEY_LEFT_SUPER]    = "Left Super",
+    [KEY_RIGHT_SHIFT]   = "Right Shift",
+    [KEY_RIGHT_CONTROL] = "Right Ctrl",
+    [KEY_RIGHT_ALT]     = "Right Alt",
+    [KEY_RIGHT_SUPER]   = "Right Super",
+    [KEY_KB_MENU]       = "Menu",
+
+    [KEY_KP_0]          = "Keypad 0",
+    [KEY_KP_1]          = "Keypad 1",
+    [KEY_KP_2]          = "Keypad 2",
+    [KEY_KP_3]          = "Keypad 3",
+    [KEY_KP_4]          = "Keypad 4",
+    [KEY_KP_5]          = "Keypad 5",
+    [KEY_KP_6]          = "Keypad 6",
+    [KEY_KP_7]          = "Keypad 7",
+    [KEY_KP_8]          = "Keypad 8",
+    [KEY_KP_9]          = "Keypad 9",
+    [KEY_KP_DECIMAL]    = "Keypad .",
+    [KEY_KP_DIVIDE]     = "Keypad /",
+    [KEY_KP_MULTIPLY]   = "Keypad *",
+    [KEY_KP_SUBTRACT]   = "Keypad -",
+    [KEY_KP_ADD]        = "Keypad +",
+    [KEY_KP_ENTER]      = "Keypad Enter",
+    [KEY_KP_EQUAL]      = "Keypad ="
+};
+
 static PlayerControl control_left = { /* left */
     .gamepad_id = PLAYER_SIDE_LEFT,
     .gamepad = {
@@ -92,9 +213,12 @@ static PlayerControl control_right = { /* right */
     }
 };
 
+#define GAMEPAD_SPRITE_SIZE vec2(17, 12)
+
 static RenderTexture2D rtex;
 static Texture2D player_tex;
 static Texture2D ball_tex;
+static Texture2D gamepad_tex;
 static int left_score = 0, right_score = 0;
 static int show_fps = false;
 static PlayerInputResult lres, rres;
@@ -368,7 +492,7 @@ static void draw_settings_buttons(Game *game, PlayerInputResult *lres, PlayerInp
             key = rc->keyboard.uphit_btn;
             break;
         }
-        b.text = TextFormat("%s: %d", settings_buttons[i].text, key);
+        b.text = TextFormat("%s: %s", settings_buttons[i].text, key_names[key]);
         draw_button(&b);
     }
 }
@@ -452,11 +576,103 @@ static void draw_mode_buttons(Game *game, PlayerInputResult *lres, PlayerInputRe
             break;
         }
         reset_ballpick(game);
-        game->menu_state = MENU_STATE_BALLPICK;
+        if (mode_ismulti(game) && IsGamepadAvailable(0) && IsGamepadAvailable(1))
+            game->menu_state = MENU_STATE_GAMEPAD_PICK;
+        else
+            game->menu_state = MENU_STATE_BALLPICK;
     }
 
     for (int i = 0; i < GAME_MODE_SIZE; i++) {
         draw_button(&mode_buttons[i]);
+    }
+}
+
+static int get_gamepad_idx(int i, int d)
+{
+    switch (i + d) {
+    case 2:
+        return 1;
+    case -2:
+        return -1;
+    }
+    return i + d;
+}
+
+static int get_gamepad_tex_idx(int i)
+{
+    switch (i) {
+    case 0:
+        return 0;
+    case 1:
+        return 2;
+    case -1:
+        return 1;
+    }
+    return 0;
+}
+
+static void draw_gamepad_pick_screen(Game *game, PlayerInputResult *lres, PlayerInputResult *rres)
+{
+    static const int w = 800;
+    static const int h = 600;
+    Color c = color(WHITE.r, WHITE.g, WHITE.b, FRAME_COLOR_ALPHA);
+    DrawRectangle((WIDTH - w) / 2, (HEIGHT - h) / 2, w, h, c);
+    static int first = 0, second = 0;
+    static int entered_func = false;
+    if (!entered_func) {
+        first = second = 0;
+        entered_func = true;
+    }
+
+    Vector2 gamepad_rsize = vec2(GAMEPAD_SPRITE_SIZE.x * 8, GAMEPAD_SPRITE_SIZE.y * 8);
+    static float ftarget = 0, starget = 0;
+
+    if (lres->press_axis.x || rres->press_axis.x) {
+        /* FIX */
+        int fx = game->controls[0].gamepad_id == 0 ? lres->press_axis.x : rres->press_axis.x;
+        int sx = game->controls[1].gamepad_id == 0 ? lres->press_axis.x : rres->press_axis.x;
+
+        first  = get_gamepad_idx(first, fx);
+        second = get_gamepad_idx(second, sx);
+    }
+
+    float fpos_x_offset = first  * 200;
+    float spos_x_offset = second * 200;
+    ftarget = WIDTH / 2.0f - gamepad_rsize.x / 2.0f + fpos_x_offset;
+    starget = WIDTH / 2.0f - gamepad_rsize.x / 2.0f + spos_x_offset;
+
+    static float fpos_x = 0;
+    static float spos_x = 0;
+    fpos_x = lerp(fpos_x, ftarget, 0.1);
+    spos_x = lerp(spos_x, starget, 0.1);
+    static const float pos_y = 200;
+    /* first */
+    DrawTexturePro(
+        gamepad_tex,
+        rec(get_gamepad_tex_idx(first) * GAMEPAD_SPRITE_SIZE.x, 0, GAMEPAD_SPRITE_SIZE.x, GAMEPAD_SPRITE_SIZE.y),
+        rec(fpos_x, pos_y, gamepad_rsize.x, gamepad_rsize.y),
+        vec2zero,
+        0,
+        WHITE
+    );
+    /* second */
+    DrawTexturePro(
+        gamepad_tex,
+        rec(get_gamepad_tex_idx(second) * GAMEPAD_SPRITE_SIZE.x, 0, GAMEPAD_SPRITE_SIZE.x, GAMEPAD_SPRITE_SIZE.y),
+        rec(spos_x, pos_y + gamepad_rsize.y * 1.5f, gamepad_rsize.x, gamepad_rsize.y),
+        vec2zero,
+        0,
+        WHITE
+    );
+
+    if (lres->forw_btn || rres->forw_btn) {
+        if (first != 0 && second != 0) {
+            game->controls[0].gamepad_id = first  == 1 ? PLAYER_SIDE_RIGHT : PLAYER_SIDE_LEFT;
+            game->controls[1].gamepad_id = second == 1 ? PLAYER_SIDE_RIGHT : PLAYER_SIDE_LEFT;
+
+            game->menu_state = MENU_STATE_BALLPICK;
+            entered_func = false;
+        }
     }
 }
 
@@ -556,6 +772,8 @@ static void draw_menu(Game *game)
         draw_settings_buttons(game, &lres, &rres);
     } else if (menu_ismode(game)) {
         draw_mode_buttons(game, &lres, &rres);
+    } else if (menu_isgamepadpick(game)) {
+        draw_gamepad_pick_screen(game, &lres, &rres);
     } else if (menu_isballpick(game)) {
         int *ball_pick = &game->ball_pick;
 
@@ -597,6 +815,8 @@ static void draw_menu(Game *game)
             Color c = WHITE;
             if (*ball_pick == i)
                 c = GREEN;
+
+            c.a = FRAME_COLOR_ALPHA;
 
             DrawRectangleRec(frame, c);
             DrawTexturePro(ball_tex, src, dest, vec2(0, 0), 0, WHITE);
@@ -656,24 +876,29 @@ static void draw_menu(Game *game)
                 size.y - 24
             };
             Rectangle frame = rec(pos.x - 8, pos.y - 8, size.x + 16, size.y + 16);
-            Color c = WHITE;
+            Color white = color(WHITE.r, WHITE.g, WHITE.b, FRAME_COLOR_ALPHA);
+            Color red   = color(RED.r, RED.g, RED.b, FRAME_COLOR_ALPHA);
+            Color blue  = color(BLUE.r, BLUE.g, BLUE.b, FRAME_COLOR_ALPHA);
+            Color c = white;
             if (*left_pick == i)
-                c = RED;
+                c = red;
             else if (mode_ismulti(game) && *right_pick == i)
-                c = BLUE;
+                c = blue;
+
+            c.a = FRAME_COLOR_ALPHA;
 
             if (mode_ismulti(game) && *left_pick == i && i == *right_pick) {
                 DrawTriangle(
                     vec2(frame.x, frame.y),
                     vec2(frame.x, frame.y + frame.height),
                     vec2(frame.x + frame.width, frame.y + frame.height),
-                    RED
+                    red
                 );
                 DrawTriangle(
                     vec2(frame.x, frame.y),
                     vec2(frame.x + frame.width, frame.y + frame.height),
                     vec2(frame.x + frame.width, frame.y),
-                    BLUE
+                    blue
                 );
             } else {
                 DrawRectangleRec(frame, c);
@@ -688,7 +913,7 @@ static void draw_menu(Game *game)
             Vector2 bsize = vec2(392, 640);
             if (*left_pick == i) {
                 Rectangle brec = rec(32, 32, bsize.x, bsize.y);
-                DrawRectangleRec(brec, WHITE);
+                DrawRectangleRec(brec, white);
                 DrawTexturePro(player_tex,
                                rec(
                                    PLAYER_SPRITE_SIZE * i,
@@ -706,7 +931,7 @@ static void draw_menu(Game *game)
             }
             if (*right_pick == i) {
                 Rectangle brec = rec(WIDTH - bsize.x - 32, 32, bsize.x, bsize.y);
-                DrawRectangleRec(brec, WHITE);
+                DrawRectangleRec(brec, white);
                 DrawTexturePro(player_tex,
                                rec(
                                    PLAYER_SPRITE_SIZE * i,
@@ -815,6 +1040,7 @@ void init_game(Game *game)
     init_map(&game->map);
     player_tex = LoadTexture("assets/player.png");
     ball_tex = LoadTexture("assets/ball.png");
+    gamepad_tex = LoadTexture("assets/gamepads.png");
     /* ball */
     /* players controls */
     /* gamepad */
@@ -895,8 +1121,14 @@ void update_game(Game *game, float dt)
             case MENU_STATE_PLAYMODE:
                 game->menu_state = MENU_STATE_MAIN;
                 break;
-            case MENU_STATE_BALLPICK:
+            case MENU_STATE_GAMEPAD_PICK:
                 game->menu_state = MENU_STATE_PLAYMODE;
+                break;
+            case MENU_STATE_BALLPICK:
+                if (mode_ismulti(game) && IsGamepadAvailable(0) && IsGamepadAvailable(1))
+                    game->menu_state = MENU_STATE_GAMEPAD_PICK;
+                else
+                    game->menu_state = MENU_STATE_PLAYMODE;
                 break;
             case MENU_STATE_CHARPICK:
                 game->menu_state = MENU_STATE_BALLPICK;
