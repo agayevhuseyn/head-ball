@@ -13,7 +13,12 @@
 #define SOUND_ALIEN_SIZE 2
 #define SOUND_EGGHEAD_SIZE 2
 #define SOUND_STUN_SIZE 2
+#define SOUND_HACK_SIZE 2
+#define SOUND_SLOWMO_SIZE 2
+#define SOUND_SLOWMOEND_SIZE 2
 
+typedef struct {
+} SoundGroup;
 
 typedef struct {
     Sound hitbar[SOUND_HITBAR_SIZE];
@@ -34,6 +39,12 @@ typedef struct {
     int egghead_i;
     Sound stun[SOUND_STUN_SIZE];
     int stun_i;
+    Sound hack[SOUND_STUN_SIZE];
+    int hack_i;
+    Sound slowmo[SOUND_STUN_SIZE];
+    int slowmo_i;
+    Sound slowmoend[SOUND_STUN_SIZE];
+    int slowmoend_i;
 } SoundManager;
 
 
@@ -48,6 +59,9 @@ void play_sizzle(SoundManager *sm);
 void play_cheer(SoundManager *sm);
 void play_egghead(SoundManager *sm);
 void play_stun(SoundManager *sm);
+void play_hack(SoundManager *sm);
+void play_slowmo(SoundManager *sm);
+void play_slowmoend(SoundManager *sm);
 
 
 #endif /* SOUND_H */

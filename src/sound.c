@@ -33,6 +33,15 @@ void init_soundmanager(SoundManager *sm)
 
     for (int i = 0; i < SOUND_STUN_SIZE; i++)
         sm->stun[i] = LoadSound(DIR"stun.wav");
+
+    for (int i = 0; i < SOUND_HACK_SIZE; i++)
+        sm->hack[i] = LoadSound(DIR"hack.wav");
+
+    for (int i = 0; i < SOUND_SLOWMO_SIZE; i++)
+        sm->slowmo[i] = LoadSound(DIR"slowmo.wav");
+
+    for (int i = 0; i < SOUND_SLOWMOEND_SIZE; i++)
+        sm->slowmoend[i] = LoadSound(DIR"slowmoend.wav");
 }
 
 void play_hitbar(SoundManager *sm)
@@ -95,4 +104,22 @@ void play_stun(SoundManager *sm)
 {
     PlaySound(sm->stun[sm->stun_i]);
     sm->stun_i = (sm->stun_i + 1) % SOUND_STUN_SIZE;
+}
+
+void play_hack(SoundManager *sm)
+{
+    PlaySound(sm->hack[sm->hack_i]);
+    sm->hack_i = (sm->hack_i + 1) % SOUND_HACK_SIZE;
+}
+
+void play_slowmo(SoundManager *sm)
+{
+    PlaySound(sm->slowmo[sm->slowmo_i]);
+    sm->slowmo_i = (sm->slowmo_i + 1) % SOUND_SLOWMO_SIZE;
+}
+
+void play_slowmoend(SoundManager *sm)
+{
+    PlaySound(sm->slowmoend[sm->slowmoend_i]);
+    sm->slowmoend_i = (sm->slowmoend_i + 1) % SOUND_SLOWMOEND_SIZE;
 }

@@ -16,6 +16,7 @@
 #define DASH_SPEED_MULT 7.0f
 #define SUMO_SMASH_MULTIPLIER 1.5f
 #define STUN_MAX_TIME 3.0f
+#define BALL_SLOWTIME_SCALE 0.25f
 
 #define PART_SIZE 128
 static Particle ps[2][PART_SIZE] = {0};
@@ -204,10 +205,12 @@ static void super(Player *player, Game *game)
         player->p.velo.y = -player->jmp_force;
         break;
     case PLAYER_MATRIX:
-        game->ball.time_scale = 0.25f;
+        play_slowmo(&game->sm);
+        game->ball.time_scale = BALL_SLOWTIME_SCALE;
         break;
     case PLAYER_HACKER:
         opponent->revctrl = true;
+        play_hack(&game->sm);
         emit_particles_rand(
             ps[opponent->side], /* Particle *ps,  */
             PART_SIZE, /* int size,  */
@@ -268,6 +271,7 @@ static void desuper(Player *player, Game *game)
         player->p.mass /= 6.0f;
         break;
     case PLAYER_MATRIX:
+        play_slowmoend(&game->sm);
         game->ball.time_scale = 1.0f;
         break;
     case PLAYER_HACKER:
