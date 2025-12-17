@@ -42,6 +42,9 @@ void init_soundmanager(SoundManager *sm)
 
     for (int i = 0; i < SOUND_SLOWMOEND_SIZE; i++)
         sm->slowmoend[i] = LoadSound(DIR"slowmoend.wav");
+
+    for (int i = 0; i < SOUND_JOKER_SIZE; i++)
+        sm->joker[i] = LoadSound(DIR"joker.wav");
 }
 
 void play_hitbar(SoundManager *sm)
@@ -122,4 +125,10 @@ void play_slowmoend(SoundManager *sm)
 {
     PlaySound(sm->slowmoend[sm->slowmoend_i]);
     sm->slowmoend_i = (sm->slowmoend_i + 1) % SOUND_SLOWMOEND_SIZE;
+}
+
+void play_joker(SoundManager *sm)
+{
+    PlaySound(sm->joker[sm->joker_i]);
+    sm->joker_i = (sm->joker_i + 1) % SOUND_JOKER_SIZE;
 }

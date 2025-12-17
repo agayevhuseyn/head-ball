@@ -16,6 +16,7 @@
 #define SOUND_HACK_SIZE 2
 #define SOUND_SLOWMO_SIZE 2
 #define SOUND_SLOWMOEND_SIZE 2
+#define SOUND_JOKER_SIZE 2
 
 typedef struct {
 } SoundGroup;
@@ -45,6 +46,8 @@ typedef struct {
     int slowmo_i;
     Sound slowmoend[SOUND_STUN_SIZE];
     int slowmoend_i;
+    Sound joker[SOUND_JOKER_SIZE];
+    int joker_i;
 } SoundManager;
 
 
@@ -62,6 +65,7 @@ void play_stun(SoundManager *sm);
 void play_hack(SoundManager *sm);
 void play_slowmo(SoundManager *sm);
 void play_slowmoend(SoundManager *sm);
+void play_joker(SoundManager *sm);
 
 
 #endif /* SOUND_H */

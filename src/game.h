@@ -4,6 +4,7 @@
 #include "input.h"
 #include "sound.h"
 #include "map.h"
+#include "emote.h"
 
 typedef enum {
     GAME_STATE_MENU,
@@ -38,6 +39,7 @@ typedef struct {
     GameState game_state;
     MenuState menu_state;
     SoundManager sm;
+    EmoteManager em;
     Map map;
     int game_mode; /* single or multiplayer */
     /* picking ball state */

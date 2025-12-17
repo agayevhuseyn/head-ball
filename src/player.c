@@ -1,5 +1,6 @@
 #include "player.h"
 #include "config.h"
+#include "emote.h"
 #include "macros.h"
 #include <math.h>
 #include <raylib.h>
@@ -90,6 +91,11 @@ void init_player(Player *player, int index, int side, Vector2 pos,
         player->super.active = true;
         player->super.maxchr_time = 8.0f;
         player->super.maxuse_time = 3.0f;
+        break;
+    case PLAYER_JOKER:
+        player->super.active = true;
+        player->super.maxchr_time = 8.0f;
+        player->super.maxuse_time = 4.0f;
         break;
     case PLAYER_ALIEN:
         player->super.active = true;
@@ -224,6 +230,9 @@ static void super(Player *player, Game *game)
             ascir(opponent->p).radius /* float psize  */
         );
         break;
+    case PLAYER_JOKER:
+        play_joker(&game->sm);
+        break;
     case PLAYER_ALIEN: {
         Vector2 *op_pos_p = &ascir(opponent->p).pos;
         Vector2 op_pos = *op_pos_p;
@@ -281,6 +290,8 @@ static void desuper(Player *player, Game *game)
             : PLAYER_SIDE_LEFT
         ]
         .revctrl = false;
+        break;
+    case PLAYER_JOKER:
         break;
     }
 }
@@ -388,6 +399,12 @@ static void update_bot(Player *player, PlayerInputResult *ires, Game *game, floa
 void update_player(Player *player, PlayerInputResult ires, void *gameptr, float dt)
 {
     Game *game = (Game*)gameptr;
+
+    if (IsKeyPressed(KEY_GRAVE) && player->side == PLAYER_SIDE_LEFT) {
+        send_emote(&game->em, player->side, rand() % 4);
+    } else if (IsKeyPressed(KEY_TAB) && player->side == PLAYER_SIDE_RIGHT) {
+        send_emote(&game->em, player->side, rand() % 4);
+    }
 
     if (player->is_bot) {
         ires = (PlayerInputResult) {0};

@@ -18,9 +18,10 @@ enum {
     PLAYER_SUMO,
     PLAYER_MATRIX,
     PLAYER_HACKER,
-    PLAYER_PANDA,
+    PLAYER_JOKER,
     PLAYER_ALIEN,
     PLAYER_SIZE, /* number of players */
+    PLAYER_PANDA,
 };
 
 typedef struct {

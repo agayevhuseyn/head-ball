@@ -242,7 +242,7 @@ static CharInfoBox char_info_boxes[PLAYER_SIZE] = {
     },
     [PLAYER_HACKER] = {
     },
-    [PLAYER_PANDA] = {
+    [PLAYER_JOKER] = {
     },
     [PLAYER_ALIEN] = {
     },
@@ -1025,6 +1025,7 @@ void init_game(Game *game)
     srand(time(NULL));
     *game = (Game) {0};
     init_soundmanager(&game->sm);
+    init_emotemanager(&game->em, game->players);
     /* game */
     game->game_state = GAME_STATE_MENU;
     /* menu */
@@ -1095,6 +1096,8 @@ void draw_game(Game *game)
                     DrawTextureEx(game->map.beach.tree, vec2(0, 0), 0, SCALE, WHITE);
                     break;
                 }
+
+                draw_emote(&game->em);
             }
         EndMode2D();
 
@@ -1305,4 +1308,6 @@ void update_game(Game *game, float dt)
     if (ball->stop_time >= BALL_MAX_STOP_TIME) {
         game->resetting_ball = true;
     }
+
+    update_emote(&game->em, dt);
 }
