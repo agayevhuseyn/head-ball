@@ -17,6 +17,7 @@
 #define SOUND_SLOWMO_SIZE 2
 #define SOUND_SLOWMOEND_SIZE 2
 #define SOUND_JOKER_SIZE 2
+#define SOUND_EMOTE_SIZE 2
 
 typedef struct {
 } SoundGroup;
@@ -48,6 +49,8 @@ typedef struct {
     int slowmoend_i;
     Sound joker[SOUND_JOKER_SIZE];
     int joker_i;
+    Sound emote[SOUND_EMOTE_SIZE];
+    int emote_i;
 } SoundManager;
 
 
@@ -66,6 +69,7 @@ void play_hack(SoundManager *sm);
 void play_slowmo(SoundManager *sm);
 void play_slowmoend(SoundManager *sm);
 void play_joker(SoundManager *sm);
+void play_emote(SoundManager *sm);
 
 
 #endif /* SOUND_H */

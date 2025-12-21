@@ -1,6 +1,7 @@
 #include "emote.h"
 #include "macros.h"
 #include "font.h"
+#include "config.h"
 #include <stdio.h> /* fopen, fclose, fputc, fputs */
 #include <string.h> /* strcpy */
 
@@ -14,10 +15,9 @@
 #define CLOSE_TIME 0.35f
 
 
-#define EMOTE_TEXT_SIZE 4
 #define EMOTE_TEXT_BUFSIZ 32
-static char emote_texts[2][EMOTE_TEXT_SIZE][EMOTE_TEXT_BUFSIZ];
-static const char *emote_text_samples[EMOTE_TEXT_SIZE] = {
+static char emote_texts[2][EMOTE_SIZE][EMOTE_TEXT_BUFSIZ];
+static const char *emote_text_samples[EMOTE_SIZE] = {
     "GOOD LUCK",
     "HAHAHA",
     "OOPS..",
@@ -50,7 +50,7 @@ void init_emotemanager(EmoteManager *em, Player players[2])
     } else {
         char c;
         for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < EMOTE_TEXT_SIZE; j++) {
+            for (int j = 0; j < EMOTE_SIZE; j++) {
                 int cpos = 0;
                 while (cpos < EMOTE_TEXT_BUFSIZ - 1 && (c = fgetc(fp)) != '\n' && c != EOF) {
                     emote_texts[i][j][cpos++] = c;
@@ -65,11 +65,12 @@ void init_emotemanager(EmoteManager *em, Player players[2])
     }
 }
 
-void send_emote(EmoteManager *em, int side, int i)
+void send_emote(EmoteManager *em, SoundManager *sm, int side, int i)
 {
     if (em->states[side].active)
         return;
 
+    play_emote(sm);
     em->states[side].active = true;
     em->states[side].i = i;
     em->states[side].state = EMOTEBOX_OPENING;

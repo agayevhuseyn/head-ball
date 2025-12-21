@@ -45,6 +45,9 @@ void init_soundmanager(SoundManager *sm)
 
     for (int i = 0; i < SOUND_JOKER_SIZE; i++)
         sm->joker[i] = LoadSound(DIR"joker.wav");
+
+    for (int i = 0; i < SOUND_EMOTE_SIZE; i++)
+        sm->emote[i] = LoadSound(DIR"emote.wav");
 }
 
 void play_hitbar(SoundManager *sm)
@@ -131,4 +134,10 @@ void play_joker(SoundManager *sm)
 {
     PlaySound(sm->joker[sm->joker_i]);
     sm->joker_i = (sm->joker_i + 1) % SOUND_JOKER_SIZE;
+}
+
+void play_emote(SoundManager *sm)
+{
+    PlaySound(sm->emote[sm->emote_i]);
+    sm->emote_i = (sm->emote_i + 1) % SOUND_EMOTE_SIZE;
 }

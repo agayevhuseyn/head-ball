@@ -400,12 +400,6 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
 {
     Game *game = (Game*)gameptr;
 
-    if (IsKeyPressed(KEY_GRAVE) && player->side == PLAYER_SIDE_LEFT) {
-        send_emote(&game->em, player->side, rand() % 4);
-    } else if (IsKeyPressed(KEY_TAB) && player->side == PLAYER_SIDE_RIGHT) {
-        send_emote(&game->em, player->side, rand() % 4);
-    }
-
     if (player->is_bot) {
         ires = (PlayerInputResult) {0};
         update_bot(player, &ires, game, dt);
@@ -417,6 +411,15 @@ void update_player(Player *player, PlayerInputResult ires, void *gameptr, float 
             player->stun_time = 0;
         } else {
             ires = (PlayerInputResult) {0};
+        }
+    }
+
+    if (ires.emote_pressed) {
+        for (int i = 0; i < 4; i++) {
+            if (ires.emote_btns[i]) {
+                send_emote(&game->em, &game->sm, player->side, i);
+                break;
+            }
         }
     }
 

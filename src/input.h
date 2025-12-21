@@ -3,6 +3,7 @@
 
 
 #include <raylib.h>
+#include "config.h"
 
 
 typedef struct {
@@ -15,6 +16,7 @@ typedef struct {
         int super_btn;
         int strhit_btn;
         int uphit_btn;
+        int emote_btns[EMOTE_SIZE];
     } keyboard;
     struct {
         int super_btn;
@@ -22,6 +24,7 @@ typedef struct {
         int uphit_btn;
         int forw_btn;
         int back_btn;
+        int emote_btns[EMOTE_SIZE];
     } gamepad;
 } PlayerControl;
 
@@ -41,6 +44,8 @@ typedef struct {
     int uphit_btn;
     int forw_btn;
     int back_btn;
+    int emote_pressed;
+    int emote_btns[EMOTE_SIZE];
 } PlayerInputResult;
 
 

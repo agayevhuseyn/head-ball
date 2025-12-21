@@ -71,6 +71,14 @@ PlayerInputResult get_playerinputresult(PlayerControl *pc)
         if (IsGamepadButtonPressed(id, pc->gamepad.back_btn)) {
             res.back_btn = true;
         }
+
+        for (int i = 0; i < EMOTE_SIZE; i++) {
+            if (IsKeyPressed(pc->keyboard.emote_btns[i])) {
+                res.emote_pressed = true;
+                res.emote_btns[i] = true;
+                break;
+            }
+        }
     } else {
         res.iaxis.x = res.faxis.x = IsKeyDown(pc->keyboard.right_btn) - IsKeyDown(pc->keyboard.left_btn);
         res.iaxis.y = res.faxis.y = IsKeyDown(pc->keyboard.down_btn)  - IsKeyDown(pc->keyboard.up_btn);
@@ -86,6 +94,14 @@ PlayerInputResult get_playerinputresult(PlayerControl *pc)
         }
         if (IsKeyPressed(pc->keyboard.uphit_btn)) {
             res.uphit_btn = true;
+        }
+
+        for (int i = 0; i < EMOTE_SIZE; i++) {
+            if (IsKeyPressed(pc->keyboard.emote_btns[i])) {
+                res.emote_pressed = true;
+                res.emote_btns[i] = true;
+                break;
+            }
         }
     }
 

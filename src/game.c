@@ -181,6 +181,12 @@ static PlayerControl control_left = { /* left */
         .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_LEFT,
         .forw_btn   = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
         .back_btn   = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
+        .emote_btns = {
+            GAMEPAD_BUTTON_LEFT_FACE_UP,
+            GAMEPAD_BUTTON_LEFT_FACE_RIGHT,
+            GAMEPAD_BUTTON_LEFT_FACE_DOWN,
+            GAMEPAD_BUTTON_LEFT_FACE_LEFT,
+        },
     },
     .keyboard = {
         .left_btn   = KEY_A,
@@ -190,6 +196,12 @@ static PlayerControl control_left = { /* left */
         .super_btn  = KEY_SPACE,
         .strhit_btn = KEY_F,
         .uphit_btn  = KEY_E,
+        .emote_btns = {
+            KEY_ONE,
+            KEY_TWO,
+            KEY_THREE,
+            KEY_FOUR
+        },
     }
 };
 
@@ -201,6 +213,12 @@ static PlayerControl control_right = { /* right */
         .uphit_btn  = GAMEPAD_BUTTON_RIGHT_FACE_LEFT,
         .forw_btn   = GAMEPAD_BUTTON_RIGHT_FACE_DOWN,
         .back_btn   = GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,
+        .emote_btns = {
+            GAMEPAD_BUTTON_LEFT_FACE_UP,
+            GAMEPAD_BUTTON_LEFT_FACE_RIGHT,
+            GAMEPAD_BUTTON_LEFT_FACE_DOWN,
+            GAMEPAD_BUTTON_LEFT_FACE_LEFT,
+        },
     },
     .keyboard = {
         .left_btn   = KEY_LEFT,
@@ -210,6 +228,12 @@ static PlayerControl control_right = { /* right */
         .super_btn  = KEY_ENTER,
         .strhit_btn = KEY_RIGHT_CONTROL,
         .uphit_btn  = KEY_RIGHT_SHIFT,
+        .emote_btns = {
+            KEY_KP_1,
+            KEY_KP_2,
+            KEY_KP_3,
+            KEY_KP_4,
+        },
     }
 };
 

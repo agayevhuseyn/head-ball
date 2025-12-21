@@ -3,7 +3,7 @@
 
 
 #include "player.h"
-
+#include "sound.h"
 
 typedef enum {
     EMOTEBOX_OPENING,
@@ -28,7 +28,7 @@ typedef struct {
 
 
 void init_emotemanager(EmoteManager *em, Player players[2]);
-void send_emote(EmoteManager *em, int side, int i);
+void send_emote(EmoteManager *em, SoundManager *sm, int side, int i);
 void update_emote(EmoteManager *em, float dt);
 void draw_emote(EmoteManager *em);
 
