@@ -247,6 +247,11 @@ static int left_score = 0, right_score = 0;
 static int show_fps = false;
 static PlayerInputResult lres, rres;
 
+static struct {
+    int x;
+    int y;
+} actual_screen_size;
+
 typedef struct {
     const char *name;
     const char *info;
@@ -1045,7 +1050,10 @@ static void draw_gameui(Game *game)
 
 void init_game(Game *game)
 {
+    actual_screen_size.x = WIDTH;
+    actual_screen_size.y = HEIGHT;
     rtex = LoadRenderTexture(WIDTH, HEIGHT);
+    SetTextureFilter(rtex.texture, TEXTURE_FILTER_POINT);
     srand(time(NULL));
     *game = (Game) {0};
     init_soundmanager(&game->sm);
@@ -1084,9 +1092,9 @@ void init_game(Game *game)
 
 void draw_game(Game *game)
 {
-    if (IsKeyPressed(KEY_ONE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1)) {
+    if (IsKeyPressed(KEY_MINUS) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1)) {
         game->map.type = MAP_STREET;
-    } else if (IsKeyPressed(KEY_TWO) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1)) {
+    } else if (IsKeyPressed(KEY_EQUAL) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1)) {
         game->map.type = MAP_BEACH;
     }
     BeginTextureMode(rtex);
@@ -1130,7 +1138,7 @@ void draw_game(Game *game)
     EndTextureMode();
 
     //DrawTextureRec(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), vec2(0, 0), WHITE);
-    DrawTexturePro(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), rec(0, 0, GetScreenWidth(), GetScreenHeight()), vec2(0, 0), 0, WHITE);
+    DrawTexturePro(rtex.texture, rec(0, 0, WIDTH, -HEIGHT), rec(0, 0, actual_screen_size.x, actual_screen_size.y), vec2(0, 0), 0, WHITE);
 }
 
 void update_game(Game *game, float dt)
@@ -1177,14 +1185,16 @@ void update_game(Game *game, float dt)
         show_fps = !show_fps;
     if (IsKeyPressed(KEY_F11)) {
         static int fullscreen = false;
-        int width = GetMonitorWidth(0);
-        int height = GetMonitorHeight(0);
         if (!fullscreen) {
-            SetWindowSize(width, height);
+            actual_screen_size.x = GetMonitorWidth(0);
+            actual_screen_size.y = GetMonitorHeight(0);
+            SetWindowSize(actual_screen_size.x, actual_screen_size.y);
             SetWindowPosition(0, 0);
         } else {
             SetWindowSize(WIDTH, HEIGHT);
-            SetWindowPosition((width - WIDTH) / 2.0f, (height - HEIGHT) / 2.0f);
+            SetWindowPosition((actual_screen_size.x - WIDTH) / 2.0f, (actual_screen_size.y - HEIGHT) / 2.0f);
+            actual_screen_size.x = WIDTH;
+            actual_screen_size.y = HEIGHT;
         }
 
         fullscreen = !fullscreen;
