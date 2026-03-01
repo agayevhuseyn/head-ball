@@ -6,3 +6,9 @@ lib/
 assets/icon*
 raylib/
 *.apk
+assets/sounds/unused/
+assets/sounds/untouched/
+assets/sounds/mario/
+game
+game.exe
+emotes.txt
