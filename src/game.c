@@ -1173,10 +1173,11 @@ void update_game(Game *game, float dt)
                 game->menu_state = MENU_STATE_MAIN;
                 break;
             }
+            break;
         case GAME_STATE_RUN: case GAME_STATE_PAUSE:
             cam_reset(&game->cam);
             game->game_state = GAME_STATE_MENU;
-            //game->menu_state = MENU_STATE_PICK;
+            game->menu_state = MENU_STATE_CHARPICK;
             break;
         }
     }
